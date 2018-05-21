@@ -302,10 +302,6 @@ classdef my_VirtualArena < handle
         
         function log = runOne(obj,varargin)
             
-            V=50;
-            mysub = rossubscriber('/turtle1/pose');
-            [mypub, velocity_msg] = rospublisher('/turtle1/cmd_vel');
-            
             if nargin == 2 %Simulate using initial condition iInitialCondition
                 
                 iInitialCondition = varargin{1};
@@ -356,7 +352,9 @@ classdef my_VirtualArena < handle
                 profile on
             end
             
-            
+             V=1;
+             mysub = rossubscriber('/turtle1/pose');
+             [mypub, velocity_msg] = rospublisher('/turtle1/cmd_vel');
             
             while not( obj.stoppingCriteria(timeInfo,obj.systemsList)  || obj.stoppingForced )
                 
@@ -375,13 +373,14 @@ classdef my_VirtualArena < handle
                     %% Update current state of the systems
                     if not(isempty(obj.systemsList{ia}.stateObserver)) % Observer feedback
                         
-%                         xObs          = obj.systemsList{ia}.stateObserver.x;
-%                         xToController = obj.systemsList{ia}.stateObserver.h(timeInfo,xObs);
-%                         x             = obj.systemsList{ia}.x;
+%                          xObs          = obj.systemsList{ia}.stateObserver.x;
+%                          xToController = obj.systemsList{ia}.stateObserver.h(timeInfo,xObs);
+%                          x             = obj.systemsList{ia}.x;
 
-                        position_msg = mysub.LatestMessage;
-                        x = [position_msg.X; position_msg.Y; position_msg.Theta];
-                        xToController = x;
+                         position_msg = mysub.LatestMessage;
+                         x = [position_msg.X; position_msg.Y; position_msg.Theta];
+                         disp(x);
+                         xToController = x;
                         
                         %elseif not(isempty(obj.systemsList{ia}.h)) % Output feedback
                         %
@@ -391,9 +390,9 @@ classdef my_VirtualArena < handle
                         
                     else % State feedback
                         
-                        position_msg = mysub.LatestMessage;
-                        x = [position_msg.X; position_msg.Y; position_msg.Theta];
-                        disp(x);
+                         position_msg = mysub.LatestMessage;
+                         x = [position_msg.X; position_msg.Y; position_msg.Theta];
+                         disp(x);
                         
 %                         x             = obj.systemsList{ia}.x;
                         xToController = x;
@@ -462,17 +461,17 @@ classdef my_VirtualArena < handle
                         
                         u=[];
                         
-                        
                     else
                         
                         error(getMessage('my_VirtualArena:UnknownControllerType'));
                         
                     end
                     
-                    velocity_msg.Linear.X = V;
-                    velocity_msg.angular.Z = u;
-                    send(mypub, velocity_msg);
-                    disp(u);
+                     velocity_msg.Linear.X = V;
+                     velocity_msg.Angular.Z = u;
+                     send(mypub, velocity_msg);
+                     disp(u);
+                    
                     %% Cv vs Dt System
                     parameterF = {u};
                     

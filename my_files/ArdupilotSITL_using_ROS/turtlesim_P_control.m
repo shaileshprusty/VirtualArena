@@ -1,3 +1,4 @@
+clc; clear; close all;
 
 mysub = rossubscriber('/turtle1/pose');
 [mypub , pubmsg] = rospublisher('/turtle1/cmd_vel');

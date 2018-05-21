@@ -1,12 +1,12 @@
-clc; close all;
-mysub = rossubscriber('/turtle1/pose');
-%[mypub , pubmsg] = rospublisher('/turtle1/cmd_vel');
+% clc; clear; close all;
+% 
+% mysub = rossubscriber('/turtle1/pose');
+% 
+% position_msg = mysub.LatestMessage;
 
 dt = 1;
 kp =1.5;
-V=50;
-
-recvMsg = mysub.LatestMessage;
+V=1;
 
 a = input('Target X: ');
 b = input('Target Y: ');
@@ -19,11 +19,11 @@ sys = ICtSystem(...
     'nx',3,'nu',1 ...
     );
 
+sys.initialCondition = {[position_msg.X;position_msg.Y;position_msg.Theta]};
+
 sys.controller = IController(@(t,x)(kp*(atan2((b - x(2)),(a - x(1))) - x(3))));
 
-sys.initialCondition = {[recvMsg.X;recvMsg.Y;recvMsg.Theta]};
-
-va = my_VirtualArena(sys,...
+va = VirtualArena(sys,...
     'StoppingCriteria'  , @(t,x,sysList)sqrt((sys.x(1)-a)*(sys.x(1)-a) + (sys.x(2)-b)*(sys.x(2)-b))<=0.1,...
     'DiscretizationStep', dt ,...
     'PlottingStep'      , 1  ,...

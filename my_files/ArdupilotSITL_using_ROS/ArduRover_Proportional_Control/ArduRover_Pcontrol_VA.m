@@ -10,15 +10,15 @@ angle_Msg = receive(mysub2 , 10);
 
 dt = 1;
 kp = 1;
-V = 500;
+Velocity = 500;
 
 a = input('Target X: ');
 b = input('Target Y: ');
 
 sys = ICtSystem(...
     'StateEquation', @(t,x,u,varargin) [
-    V*cos(x(3));
-    V*sin(x(3));
+    Velocity*cos(x(3));
+    Velocity*sin(x(3));
     u(1)],...
     'nx',3,'nu',1 ...
     );
@@ -29,6 +29,7 @@ sys.initialCondition = {[position_Msg.Latitude;position_Msg.Longitude;3.14*angle
 
 va = ArduRover_VirtualArena(sys,...
     'Target', [a;b],...
+    'Velocity', Velocity,...
     'StoppingCriteria'  , @(t,x,sysList)sqrt((sys.x(1)-a)*(sys.x(1)-a) + (sys.x(2)-b)*(sys.x(2)-b))<=0.0002,...
     'DiscretizationStep', dt ,...
     'PlottingStep'      , 1 );

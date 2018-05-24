@@ -126,6 +126,8 @@ classdef ArduRover_VirtualArena < handle
     properties
         
         target
+
+        Velocity
         
         systemsList
         
@@ -354,7 +356,6 @@ classdef ArduRover_VirtualArena < handle
                 profile on
             end
             
-             V=500;
              mysub1 = rossubscriber('/mavros/global_position/global');
              mysub2 = rossubscriber('/mavros/global_position/compass_hdg');
              [mypub, velocity_msg] = rospublisher('/mavros/setpoint_velocity/cmd_vel_unstamped');
@@ -416,7 +417,7 @@ classdef ArduRover_VirtualArena < handle
                          disp(x);
                          
 %                         x             = obj.systemsList{ia}.x;
-                        xToController = x;
+                         xToController = x;
                         
                     end
                     z = obj.systemsList{ia}.h(timeInfo,x);
@@ -490,7 +491,8 @@ classdef ArduRover_VirtualArena < handle
                     
                      d = sqrt((x(1)-obj.target(1))*(x(1)-obj.target(1)) + ((x(2)-obj.target(2)))*((x(2)-obj.target(2))));
                     if( d >= 0.0002 ) 
-                        velocity_msg.Linear.X=500;
+                        velocity_msg.Linear.X=obj.Velocity;
+                        disp(obj.Velocity);
                         velocity_msg.Angular.Z=u;
                         disp('moving');
                         disp(u);

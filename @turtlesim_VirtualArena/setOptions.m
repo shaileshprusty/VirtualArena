@@ -16,12 +16,18 @@ function setOptions(obj,varargin)
                     
                     switch varargin{parameterPointer}
                         
+                        case 'Velocity'
+                            
+                            obj.Velocity = varargin{parameterPointer+1};
+                            
+                            parameterPointer = parameterPointer+2;
+                        
                         case 'StoppingCriteria'
                             
                             obj.stoppingCriteria = varargin{parameterPointer+1};
                             
                             parameterPointer = parameterPointer+2;
-                            
+                        
                         case 'StepPlotFunction'
                             
                             obj.stepPlotFunction = varargin{parameterPointer+1};

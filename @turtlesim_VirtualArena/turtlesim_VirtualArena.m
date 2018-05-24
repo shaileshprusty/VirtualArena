@@ -125,6 +125,8 @@ classdef turtlesim_VirtualArena < handle
     % either expressed or implied, of the FreeBSD Project.
     properties
         
+        Velocity
+        
         systemsList
         
         %stoppingCriteria is an handle function that defines the scenario when the
@@ -467,7 +469,7 @@ classdef turtlesim_VirtualArena < handle
                         
                     end
                     
-                     velocity_msg.Linear.X = V;
+                     velocity_msg.Linear.X = obj.Velocity;
                      velocity_msg.Angular.Z = u;
                      send(mypub, velocity_msg);
                      disp(u);

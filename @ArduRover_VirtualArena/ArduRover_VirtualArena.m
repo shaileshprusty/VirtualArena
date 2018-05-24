@@ -1,8 +1,8 @@
 
-classdef turtlesim_VirtualArena < handle
-    %turtlesim_VirtualArena simulation environment
+classdef ArduRover_VirtualArena < handle
+    %ArduRover_VirtualArena simulation environment
     %
-    % va   = turtlesim_VirtualArena(sysList,par1,val1,par2,val2,...)
+    % va   = ArduRover_VirtualArena(sysList,par1,val1,par2,val2,...)
     % logs = va.run();
     %
     % Parameters:
@@ -34,14 +34,14 @@ classdef turtlesim_VirtualArena < handle
     %  'StopPlotFunction' : @(logSim,vaObj)
     %   Function called at the end of the simulation that takes as input:
     %       logSim : the simulation logs (i.e., returned by va.run())
-    %       vaObj  : a reference to the turtlesim_VirtualArena object.
+    %       vaObj  : a reference to the ArduRover_VirtualArena object.
     %
     %  'HandlePostFirstPlot' : @() (function with no parameters)
     %   Function called after the StepPlotFunction function is called for
     %   the first time
     %
     %  'PlottingStep' : dt
-    %   turtlesim_VirtualArena calls the 'StepPlotFunction' when mod(t,dt)==0
+    %   ArduRover_VirtualArena calls the 'StepPlotFunction' when mod(t,dt)==0
     %
     %  'VideoName' : videoName (Default : [])
     %   If not empty, VA records a video of the simulation under videoName.avi
@@ -81,7 +81,7 @@ classdef turtlesim_VirtualArena < handle
     %
     % Example:
     %
-    % va = turtlesim_VirtualArena({v1,v2},...
+    % va = ArduRover_VirtualArena({v1,v2},...
     %     'StoppingCriteria'  ,@(t,as)t>50,...
     %     'StepPlotFunction'  ,@(systemsList,log,oldHandles,k) someStepPlotFunction(systemsList,log,oldHandles,k,extraPar1,extraPar2), ...
     %     'StopPlotFunction'  ,@(allLogs,va)someStopPlotFunction(allLogs,va,extraPar3,extraPar4),...
@@ -93,7 +93,7 @@ classdef turtlesim_VirtualArena < handle
     %
     % See also handle
     
-    % This file is part of turtlesim_VirtualArena.
+    % This file is part of ArduRover_VirtualArena.
     %
     % Copyright (c) 2014, Andrea Alessandretti
     % All rights reserved.
@@ -124,6 +124,8 @@ classdef turtlesim_VirtualArena < handle
     % of the authors and should not be interpreted as representing official policies,
     % either expressed or implied, of the FreeBSD Project.
     properties
+        
+        target
         
         systemsList
         
@@ -243,10 +245,10 @@ classdef turtlesim_VirtualArena < handle
     methods
         
         
-        function obj = turtlesim_VirtualArena(varargin)
-            %turtlesim_VirtualArena is the constructor
+        function obj = ArduRover_VirtualArena(varargin)
+            %ArduRover_VirtualArena is the constructor
             %
-            %   See help turtlesim_VirtualArena
+            %   See help ArduRover_VirtualArena
             
             % Default Settings
             
@@ -352,9 +354,10 @@ classdef turtlesim_VirtualArena < handle
                 profile on
             end
             
-             V=0.8;
-             mysub = rossubscriber('/turtle1/pose');
-             [mypub, velocity_msg] = rospublisher('/turtle1/cmd_vel');
+             V=500;
+             mysub1 = rossubscriber('/mavros/global_position/global');
+             mysub2 = rossubscriber('/mavros/global_position/compass_hdg');
+             [mypub, velocity_msg] = rospublisher('/mavros/setpoint_velocity/cmd_vel_unstamped');
             
             while not( obj.stoppingCriteria(timeInfo,obj.systemsList)  || obj.stoppingForced )
                 
@@ -377,8 +380,17 @@ classdef turtlesim_VirtualArena < handle
 %                          xToController = obj.systemsList{ia}.stateObserver.h(timeInfo,xObs);
 %                          x             = obj.systemsList{ia}.x;
 
-                         position_msg = receive(mysub,10);
-                         x = [position_msg.X; position_msg.Y; position_msg.Theta];
+                         position_Msg = receive(mysub1 , 10);
+                         angle_Msg = receive(mysub2 , 10);
+                         
+                         if(angle_Msg.Theta >= 180)
+                             angle_Msg.Theta = angle_Msg.Theta - 360;
+                         end
+                         if( angle_Msg.Theta <= -180)
+                             angle_Msg.Theta = angle_Msg.Theta + 360;
+                         end
+                         
+                         x = [position_Msg.Latitude; position_Msg.Longitude; angle_Msg.Theta];
                          disp(x);
                          xToController = x;
                         
@@ -390,10 +402,19 @@ classdef turtlesim_VirtualArena < handle
                         
                     else % State feedback
                         
-                         position_msg = receive(mysub,10);
-                         x = [position_msg.X; position_msg.Y; position_msg.Theta];
+                         position_Msg = receive(mysub1 , 10);
+                         angle_Msg = receive(mysub2 , 10);
+                         
+                         if(angle_Msg.Data >= 180)
+                             angle_Msg.Data = angle_Msg.Data - 360;
+                         end
+                         if( angle_Msg.Data <= -180)
+                             angle_Msg.Data = angle_Msg.Data + 360;
+                         end
+                         
+                         x = [position_Msg.Latitude; position_Msg.Longitude; angle_Msg.Data];
                          disp(x);
-                        
+                         
 %                         x             = obj.systemsList{ia}.x;
                         xToController = x;
                         
@@ -463,13 +484,24 @@ classdef turtlesim_VirtualArena < handle
                         
                     else
                         
-                        error(getMessage('turtlesim_VirtualArena:UnknownControllerType'));
+                        error(getMessage('ArduRover_VirtualArena:UnknownControllerType'));
                         
                     end
                     
-                     velocity_msg.Linear.X = V;
-                     velocity_msg.Angular.Z = u;
-                     send(mypub, velocity_msg);
+                     d = sqrt((x(1)-obj.target(1))*(x(1)-obj.target(1)) + ((x(2)-obj.target(2)))*((x(2)-obj.target(2))));
+                    if( d >= 0.0002 ) 
+                        velocity_msg.Linear.X=500;
+                        velocity_msg.Angular.Z=u;
+                        disp('moving');
+                        disp(u);
+                        send(mypub , velocity_msg);                   
+                    else
+                        velocity_msg.Linear.X=0;
+                        velocity_msg.Angular.Z=0;
+                        send(mypub , velocity_msg);
+                        disp('stop');
+                        disp(u);
+                    end    
                      disp(u);
                     
                     %% Cv vs Dt System
@@ -479,7 +511,7 @@ classdef turtlesim_VirtualArena < handle
                         
                         if isempty(obj.discretizationStep)
                             
-                            error(getMessage('turtlesim_VirtualArena:discretizationStepNotNefined'));
+                            error(getMessage('ArduRover_VirtualArena:discretizationStepNotNefined'));
                         end
                         
                         nextX = obj.integrator.integrate( @(x)obj.systemsList{ia}.f(timeInfo,x,parameterF{:}),x,obj.discretizationStep);
@@ -492,7 +524,7 @@ classdef turtlesim_VirtualArena < handle
                         nextX = obj.systemsList{ia}.updateState(timeInfo,nextX,parameterF{:});
                         
                     else
-                        error(getMessage('turtlesim_VirtualArena:UnknownSystemType'));
+                        error(getMessage('ArduRover_VirtualArena:UnknownSystemType'));
                     end
                     
                     if not(obj.discretizationStep==1) && obj.realTime

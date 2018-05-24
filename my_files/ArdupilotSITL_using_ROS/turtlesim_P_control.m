@@ -7,7 +7,7 @@ Y = 10;
 k = 1.5;
 
 while(1)
-    recvMsg = mysub.LatestMessage;
+    recvMsg = receive(mysub,10);
     x = recvMsg.X;
     y = recvMsg.Y;
     theta = recvMsg.Theta;
@@ -32,5 +32,6 @@ while(1)
     end
 
     send(mypub , pubmsg);
+    disp('Sending');
 
 end

@@ -1,8 +1,8 @@
 
-classdef my_VirtualArena < handle
-    %my_VirtualArena simulation environment
+classdef turtlesim_VirtualArena < handle
+    %turtlesim_VirtualArena simulation environment
     %
-    % va   = my_VirtualArena(sysList,par1,val1,par2,val2,...)
+    % va   = turtlesim_VirtualArena(sysList,par1,val1,par2,val2,...)
     % logs = va.run();
     %
     % Parameters:
@@ -34,14 +34,14 @@ classdef my_VirtualArena < handle
     %  'StopPlotFunction' : @(logSim,vaObj)
     %   Function called at the end of the simulation that takes as input:
     %       logSim : the simulation logs (i.e., returned by va.run())
-    %       vaObj  : a reference to the my_VirtualArena object.
+    %       vaObj  : a reference to the turtlesim_VirtualArena object.
     %
     %  'HandlePostFirstPlot' : @() (function with no parameters)
     %   Function called after the StepPlotFunction function is called for
     %   the first time
     %
     %  'PlottingStep' : dt
-    %   my_VirtualArena calls the 'StepPlotFunction' when mod(t,dt)==0
+    %   turtlesim_VirtualArena calls the 'StepPlotFunction' when mod(t,dt)==0
     %
     %  'VideoName' : videoName (Default : [])
     %   If not empty, VA records a video of the simulation under videoName.avi
@@ -81,7 +81,7 @@ classdef my_VirtualArena < handle
     %
     % Example:
     %
-    % va = my_VirtualArena({v1,v2},...
+    % va = turtlesim_VirtualArena({v1,v2},...
     %     'StoppingCriteria'  ,@(t,as)t>50,...
     %     'StepPlotFunction'  ,@(systemsList,log,oldHandles,k) someStepPlotFunction(systemsList,log,oldHandles,k,extraPar1,extraPar2), ...
     %     'StopPlotFunction'  ,@(allLogs,va)someStopPlotFunction(allLogs,va,extraPar3,extraPar4),...
@@ -93,7 +93,7 @@ classdef my_VirtualArena < handle
     %
     % See also handle
     
-    % This file is part of my_VirtualArena.
+    % This file is part of turtlesim_VirtualArena.
     %
     % Copyright (c) 2014, Andrea Alessandretti
     % All rights reserved.
@@ -243,10 +243,10 @@ classdef my_VirtualArena < handle
     methods
         
         
-        function obj = my_VirtualArena(varargin)
-            %my_VirtualArena is the constructor
+        function obj = turtlesim_VirtualArena(varargin)
+            %turtlesim_VirtualArena is the constructor
             %
-            %   See help my_VirtualArena
+            %   See help turtlesim_VirtualArena
             
             % Default Settings
             
@@ -377,7 +377,7 @@ classdef my_VirtualArena < handle
 %                          xToController = obj.systemsList{ia}.stateObserver.h(timeInfo,xObs);
 %                          x             = obj.systemsList{ia}.x;
 
-                         position_msg = mysub.LatestMessage;
+                         position_msg = receive(mysub,10);
                          x = [position_msg.X; position_msg.Y; position_msg.Theta];
                          disp(x);
                          xToController = x;
@@ -390,7 +390,7 @@ classdef my_VirtualArena < handle
                         
                     else % State feedback
                         
-                         position_msg = mysub.LatestMessage;
+                         position_msg = receive(mysub,10);
                          x = [position_msg.X; position_msg.Y; position_msg.Theta];
                          disp(x);
                         
@@ -463,7 +463,7 @@ classdef my_VirtualArena < handle
                         
                     else
                         
-                        error(getMessage('my_VirtualArena:UnknownControllerType'));
+                        error(getMessage('turtlesim_VirtualArena:UnknownControllerType'));
                         
                     end
                     
@@ -479,7 +479,7 @@ classdef my_VirtualArena < handle
                         
                         if isempty(obj.discretizationStep)
                             
-                            error(getMessage('my_VirtualArena:discretizationStepNotNefined'));
+                            error(getMessage('turtlesim_VirtualArena:discretizationStepNotNefined'));
                         end
                         
                         nextX = obj.integrator.integrate( @(x)obj.systemsList{ia}.f(timeInfo,x,parameterF{:}),x,obj.discretizationStep);
@@ -492,7 +492,7 @@ classdef my_VirtualArena < handle
                         nextX = obj.systemsList{ia}.updateState(timeInfo,nextX,parameterF{:});
                         
                     else
-                        error(getMessage('my_VirtualArena:UnknownSystemType'));
+                        error(getMessage('turtlesim_VirtualArena:UnknownSystemType'));
                     end
                     
                     if not(obj.discretizationStep==1) && obj.realTime

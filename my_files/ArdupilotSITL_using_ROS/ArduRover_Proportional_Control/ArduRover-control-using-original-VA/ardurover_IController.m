@@ -1,6 +1,6 @@
-classdef turtlesim_IController < Controller
+classdef ardurover_IController < Controller
 
-    %Modified IController ( inline Controller ) for the control of turtlesim.
+    %IController ( inline Controller ) for the control of ardurover.
 
 
 % Copyright (c) 2014, Andrea Alessandretti
@@ -43,7 +43,7 @@ classdef turtlesim_IController < Controller
     
     methods
                 
-        function obj = turtlesim_IController(law, kp)            
+        function obj = ardurover_IController(law, kp)            
             obj = obj@Controller();
             obj.law = law;
             obj.kp = kp;

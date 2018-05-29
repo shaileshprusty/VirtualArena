@@ -1,17 +1,19 @@
-classdef turtlesim_RealVehicleROS < CtSystem
+classdef ardurover_RealVehicleROS < CtSystem
 
     properties
         target
         velocity_magnitude
-        position_subscriber 
+        LatLon_subscriber
+        angle_subscriber
         velocity_publisher
     end
     
     methods
         
-        function obj = turtlesim_RealVehicleROS(position_subscriber, velocity_publisher, target, velocity_magnitude)
+        function obj = ardurover_RealVehicleROS(LatLon_subscriber, angle_subscriber, velocity_publisher, target, velocity_magnitude)
             obj = obj@CtSystem('nx',3,'nu',1,'ny',3);
-            obj.position_subscriber = position_subscriber;
+            obj.LatLon_subscriber = LatLon_subscriber;
+            obj.angle_subscriber = angle_subscriber;
             obj.target = target;
             obj.velocity_magnitude = velocity_magnitude;
             obj.velocity_publisher = velocity_publisher;
@@ -19,14 +21,15 @@ classdef turtlesim_RealVehicleROS < CtSystem
         
         function xDot = f(obj,t,x,u,varargin)
             
-            %% Publisher send u to the vehicle;
+            %% Publisher to send velocity to the vehicle;
             
             vel_Msg = rosmessage(obj.velocity_publisher);
-            turtle_position = receive(obj.position_subscriber,10);
-            position_params = [turtle_position.X;turtle_position.Y;turtle_position.Theta];  %Convert msg variable to matrix
+            rover_LatLon = receive(obj.LatLon_subscriber,10);
+            rover_angle = receive(obj.angle_subscriber,10);
+            position_params = [rover_LatLon.Latitude;rover_LatLon.Longitude;rover_angle.Data];  %Convert msg variable to matrix
             distance = sqrt((position_params(1)-obj.target(1))*(position_params(1)-obj.target(1)) + (position_params(2)-obj.target(2))*(position_params(2)-obj.target(2)));
             
-            if (distance >= 0.1)   
+            if (distance >= 0.0002)   
                 vel_Msg.Linear.X = obj.velocity_magnitude;
                 vel_Msg.Angular.Z = u(1);
                 send(obj.velocity_publisher,vel_Msg);
@@ -43,12 +46,13 @@ classdef turtlesim_RealVehicleROS < CtSystem
         
         function y = h(obj,t,x,varargin)
         
-            %% Subscriber read position of the vehicle the vehicle;
+            %% Subscriber to read the position of the vehicle
 
-            turtle_position = receive(obj.position_subscriber,10) ;
-            y = [turtle_position.X;
-                 turtle_position.Y;
-            	 turtle_position.Theta];
+            rover_LatLon = receive(obj.LatLon_subscriber,10);
+            rover_angle = receive(obj.angle_subscriber,10);
+            y = [rover_LatLon.Latitude;
+                 rover_LatLon.Longitude;
+            	 rover_angle.Data];
         
         end
     

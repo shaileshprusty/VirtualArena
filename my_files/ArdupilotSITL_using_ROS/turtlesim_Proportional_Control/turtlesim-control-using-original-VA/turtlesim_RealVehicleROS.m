@@ -19,7 +19,7 @@ classdef turtlesim_RealVehicleROS < CtSystem
         
         function xDot = f(obj,t,x,u,varargin)
             
-            %% Publisher send u to the vehicle;
+            %% Publisher to send velocity to the vehicle;
             
             vel_Msg = rosmessage(obj.velocity_publisher);
             turtle_position = receive(obj.position_subscriber,10);
@@ -43,7 +43,7 @@ classdef turtlesim_RealVehicleROS < CtSystem
         
         function y = h(obj,t,x,varargin)
         
-            %% Subscriber read position of the vehicle the vehicle;
+            %% Subscriber to read position of the vehicle
 
             turtle_position = receive(obj.position_subscriber,10) ;
             y = [turtle_position.X;

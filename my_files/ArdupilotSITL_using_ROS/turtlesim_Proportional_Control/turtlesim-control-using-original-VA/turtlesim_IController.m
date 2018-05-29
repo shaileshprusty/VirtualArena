@@ -1,6 +1,6 @@
 classdef turtlesim_IController < Controller
 
-    %Modified IController ( inline Controller ) for the control of turtlesim.
+    %IController ( inline Controller ) for the control of turtlesim.
 
 
 % Copyright (c) 2014, Andrea Alessandretti

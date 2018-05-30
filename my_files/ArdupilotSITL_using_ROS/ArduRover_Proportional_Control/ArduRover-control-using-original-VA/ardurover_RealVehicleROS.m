@@ -39,7 +39,7 @@ classdef ardurover_RealVehicleROS < CtSystem
                 send(obj.velocity_publisher,vel_Msg);
             end    
 
-            xDot = [500*cos(x(3));500*sin(x(3));u(1)];
+            xDot = [obj.velocity_magnitude*cos(x(3));obj.velocity_magnitude*sin(x(3));u(1)];
 
         
         end

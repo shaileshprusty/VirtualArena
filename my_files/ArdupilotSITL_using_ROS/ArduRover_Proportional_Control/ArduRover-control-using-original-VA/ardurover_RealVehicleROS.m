@@ -39,7 +39,7 @@ classdef ardurover_RealVehicleROS < CtSystem
                 send(obj.velocity_publisher,vel_Msg);
             end    
 
-            xDot = [1*cos(x(3));1*sin(x(3));u(1)];
+            xDot = [500*cos(x(3));500*sin(x(3));u(1)];
 
         
         end
@@ -50,6 +50,7 @@ classdef ardurover_RealVehicleROS < CtSystem
 
             rover_LatLon = receive(obj.LatLon_subscriber,10);
             rover_angle = receive(obj.angle_subscriber,10);
+            
             y = [rover_LatLon.Latitude;
                  rover_LatLon.Longitude;
             	 rover_angle.Data];

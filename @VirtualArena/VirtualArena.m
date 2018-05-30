@@ -373,20 +373,22 @@ classdef VirtualArena < handle
                         xObs          = obj.systemsList{ia}.stateObserver.x;
                         xToController = obj.systemsList{ia}.stateObserver.h(timeInfo,xObs);
                         x             = obj.systemsList{ia}.x;
+                        z = obj.systemsList{ia}.h(timeInfo,x);
                         
-                        %elseif not(isempty(obj.systemsList{ia}.h)) % Output feedback
-                        %
-                        %    x             = obj.systemsList{ia}.x;
-                        %    xToController = obj.systemsList{ia}.h(timeInfo,x);
-                        %    z             = xToController;
+                    elseif not(isempty(obj.systemsList{ia}.h)) % Output feedback
+                        
+                        x             = obj.systemsList{ia}.x;
+                        xToController = obj.systemsList{ia}.h(timeInfo,x);
+                        z             = xToController;
                         
                     else % State feedback
                         
                         x             = obj.systemsList{ia}.x;
                         xToController = x;
+                        z = obj.systemsList{ia}.h(timeInfo,x);
                         
                     end
-                    z = obj.systemsList{ia}.h(timeInfo,x);
+                    
                     %% Classic vs Network control
                     if not(isempty(obj.sensorsNetwork))
                         

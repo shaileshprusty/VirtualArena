@@ -21,7 +21,7 @@ classdef ardurover_RealVehicleROS < CtSystem
         
         function xDot = f(obj,t,x,u,varargin)
             
-            %% Publisher send u to the vehicle;
+            %% Publisher to send velocity to the vehicle;
             
             vel_Msg = rosmessage(obj.velocity_publisher);
             rover_LatLon = receive(obj.LatLon_subscriber,10);
@@ -29,7 +29,7 @@ classdef ardurover_RealVehicleROS < CtSystem
             position_params = [rover_LatLon.Latitude;rover_LatLon.Longitude;rover_angle.Data];  %Convert msg variable to matrix
             distance = sqrt((position_params(1)-obj.target(1))*(position_params(1)-obj.target(1)) + (position_params(2)-obj.target(2))*(position_params(2)-obj.target(2)));
             
-            if (distance >= 0.1)   
+            if (distance >= 0.0002)   
                 vel_Msg.Linear.X = obj.velocity_magnitude;
                 vel_Msg.Angular.Z = u(1);
                 send(obj.velocity_publisher,vel_Msg);
@@ -46,12 +46,16 @@ classdef ardurover_RealVehicleROS < CtSystem
         
         function y = h(obj,t,x,varargin)
         
-            %% Subscriber read position of the vehicle the vehicle;
+            %% Subscriber to read the position of the vehicle
 
-            rover_LatLon = receive(obj.position_subscriber,10);
-            y = [rover_LatLon.X;
-                 rover_LatLon.Y;
-            	 rover_LatLon.Theta];
+            rover_LatLon = receive(obj.LatLon_subscriber,10);
+            rover_angle = receive(obj.angle_subscriber,10);
+            if( rover_angle.Data > 180 )
+                angle_error = angle_error - 2*3.14;
+            end
+            y = [rover_LatLon.Latitude;
+                 rover_LatLon.Longitude;
+            	 rover_angle.Data];
         
         end
     

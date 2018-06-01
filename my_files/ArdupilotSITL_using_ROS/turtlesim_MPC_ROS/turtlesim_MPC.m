@@ -10,12 +10,12 @@ target_velocity_publisher = rospublisher('/turtle1/cmd_vel');
 defender_position_subscriber = rossubscriber('/turtle3/pose');
 defender_velocity_publisher = rospublisher('/turtle3/cmd_vel');
 
-dt = 0.1;
+dt = 1;
 vm = 0.4;
 vt = 0.2;
 vd = 0.8;
-K = 3;
-N = 3;
+K = 30;
+N = 30;
 switchGuidanceLaw = 10;
 
 attacker_position = receive(attacker_position_subscriber,10);
@@ -48,24 +48,24 @@ sys.initialCondition = {double([attacker_position.X;
                          atan2(target_position.Y - attacker_position.Y, target_position.X - attacker_position.X);
                          attacker_position.Theta])};
 
-% System with state and input noise covariance matrices
-Q = diag(([0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1])/3)^2;
-R = diag(([0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1])/3)^2;
-                     
-for ii = 1:length(sys.initialCondition)
-    x0Filter{ii} = [sys.initialCondition{ii};  %xHat(0)
-                    10*reshape(eye(10),100,1)]; %P(0)
-end
-                     
-sys.stateObserver = EkfFilter(DiscretizedSystem(sys,dt),...
-                 'StateNoiseMatrix'  , dt*Q,...
-                 'OutputNoiseMatrix' , R,...
-                 'InitialCondition'  , x0Filter);
+% % System with state and input noise covariance matrices
+% Q = diag(([0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1])/3)^2;
+% R = diag(([0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1])/3)^2;
+%                      
+% for ii = 1:length(sys.initialCondition)
+%     x0Filter{ii} = [sys.initialCondition{ii};  %xHat(0)
+%                     10*reshape(eye(10),100,1)]; %P(0)
+% end
+%                      
+% sys.stateObserver = EkfFilter(DiscretizedSystem(sys,dt),...
+%                  'StateNoiseMatrix'  , dt*Q,...
+%                  'OutputNoiseMatrix' , R,...
+%                  'InitialCondition'  , x0Filter);
 
 
 mpcOp = ICtMpcOp( ...
     'System'               , sys,...
-    'HorizonLength'        , dt,...
+    'HorizonLength'        , 2*dt,...
     'StageCost'            , @(t,x,u,varargin) -((x(6)-x(1))^2+(x(7)-x(2))^2)+((x(3)-x(1))^2+(x(4)-x(2))^2));
 
 dtMpcOp      = DiscretizedMpcOp(mpcOp,dt);

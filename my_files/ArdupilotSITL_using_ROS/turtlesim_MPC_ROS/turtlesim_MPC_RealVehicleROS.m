@@ -70,9 +70,22 @@ classdef turtlesim_MPC_RealVehicleROS < CtSystem
 %                 vel_Msg.Angular.Z = 0;
 %                 send(obj.velocity_publisher,vel_Msg);
 %             end    
+            
+            
+            
+            xDot = [obj.vm*cos(x(10));  %Velocity of Attacker in x-dircetion
+                    obj.vm*sin(x(10));  %Velocity of Attacker in y-dircetion
+                    obj.vd*cos(x(5));   %Velocity of Defender in x-dircetion
+                    obj.vd*sin(x(5));   %Velocity of Defender in x-dircetion
+                    u(1);               %Angular Velocity of Defender
+                    obj.vt*cos(target_position.Theta);  %Velocity of Target in x-dircetion
+                    obj.vt*sin(target_position.Theta);  %Velocity of Target in y-dircetion
+                    obj.vt*cos(target_position.Theta-x(9))-obj.vm*cos(x(10)-x(8));  %Velocity along Attacker-Target LOS
+                    (obj.vt*sin(target_position.Theta-x(9))-obj.vm*sin(x(10)-x(9)))/x(8);   %Angular velocity of above equation
+                    ((((-1).^floor(ceil(t/obj.switchGuidanceLaw)))+1)/2)*(obj.N*((obj.vt*sin(target_position.Theta-x(9))-obj.vm*sin(x(10)-x(9)))/x(8)))+(1-((((-1).^floor(ceil(t/obj.switchGuidanceLaw)))+1)/2))*(((-obj.K*(x(10)-x(9)))/obj.vm))];  %Angular Velocity of Target
 
             attacker_vel_Msg.Linear.X = obj.vm;
-            attacker_vel_Msg.Angular.Z = x(9);
+            attacker_vel_Msg.Angular.Z = xDot(10);
             target_vel_Msg.Linear.X = obj.vt;
             target_vel_Msg.Angular.Z = 0;
             defender_vel_Msg.Linear.X = obj.vd;
@@ -81,19 +94,6 @@ classdef turtlesim_MPC_RealVehicleROS < CtSystem
             send(obj.attacker_velocity_publisher, attacker_vel_Msg);
             send(obj.target_velocity_publisher, target_vel_Msg);
             send(obj.defender_velocity_publisher, defender_vel_Msg);
-            
-            xDot = [obj.vm*cos(x(10));
-                    obj.vm*sin(x(10));
-                    obj.vd*cos(x(5));
-                    obj.vd*sin(x(5));
-                    u(1);
-                    obj.vt*cos(target_position.Theta);
-                    obj.vt*sin(target_position.Theta);
-                    obj.vt*cos(target_position.Theta-x(9))-obj.vm*cos(x(10)-x(8));
-                    (obj.vt*sin(target_position.Theta-x(9))-obj.vm*sin(x(10)-x(9)))/x(8);
-                    ((((-1).^floor(ceil(t/obj.switchGuidanceLaw)))+1)/2)*(obj.N*((obj.vt*sin(target_position.Theta-x(9))-obj.vm*sin(x(10)-x(9)))/x(8)))+(1-((((-1).^floor(ceil(t/obj.switchGuidanceLaw)))+1)/2))*(((-obj.K*(x(10)-x(9)))/obj.vm))
-                    ];
-
         
         end
         
@@ -105,7 +105,7 @@ classdef turtlesim_MPC_RealVehicleROS < CtSystem
             target_position = receive(obj.target_position_subscriber,10);
             defender_position = receive(obj.defender_position_subscriber,10);
             
-            y = [attacker_position.X;
+            y = double([attacker_position.X;
                  attacker_position.Y;
             	 defender_position.X;
                  defender_position.Y;
@@ -114,8 +114,7 @@ classdef turtlesim_MPC_RealVehicleROS < CtSystem
                  target_position.Y;
             	 sqrt((target_position.X - attacker_position.X)^2 + (target_position.Y - attacker_position.Y)^2);
                  atan2(target_position.Y - attacker_position.Y, target_position.X - attacker_position.X);
-                 attacker_position.Theta
-                 ];
+                 attacker_position.Theta]);
         
         end
     

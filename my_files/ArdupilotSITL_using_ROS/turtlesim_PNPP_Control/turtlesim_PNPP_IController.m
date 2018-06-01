@@ -45,7 +45,6 @@ classdef turtlesim_PNPP_IController < Controller
         function obj = turtlesim_PNPP_IController(law)            
             obj = obj@Controller();
             obj.law = law;
-            obj.kp = kp;
         end
                 
         function u = computeInput(obj,varargin) 

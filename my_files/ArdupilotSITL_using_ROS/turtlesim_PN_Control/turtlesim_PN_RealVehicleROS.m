@@ -30,21 +30,20 @@ classdef turtlesim_PN_RealVehicleROS < CtSystem
             
             attacker_position = receive(obj.attacker_position_subscriber,10);
             
-%             position_params = [rover_LatLon.Latitude;rover_LatLon.Longitude;rover_angle.Data];  %Convert msg variable to matrix
-%             distance = sqrt((position_params(1)-obj.target(1))*(position_params(1)-obj.target(1)) + (position_params(2)-obj.target(2))*(position_params(2)-obj.target(2)));
-%             
-%             if (distance >= 0.0002)   
-%                 vel_Msg.Linear.X = obj.velocity_magnitude;
-%                 vel_Msg.Angular.Z = u(1);
+            distance = sqrt((attacker_position.X-obj.target(1))*(attacker_position.X-obj.target(1)) + (attacker_position.Y-obj.target(2))*(attacker_position.Y-obj.target(2)));
+            
+            if (distance >= 0.4)   
+                attacker_vel_Msg.Linear.X = obj.vm;
+                attacker_vel_Msg.Angular.Z = u(1);
 %                 send(obj.velocity_publisher,vel_Msg);
-%             else
-%                 vel_Msg.Linear.X = 0;
-%                 vel_Msg.Angular.Z = 0;
+            else
+                attacker_vel_Msg.Linear.X = 0;
+                attacker_vel_Msg.Angular.Z = 0;
 %                 send(obj.velocity_publisher,vel_Msg);
-%             end    
+            end    
 
-            attacker_vel_Msg.Linear.X = obj.vm;
-            attacker_vel_Msg.Angular.Z = u(1);
+%             attacker_vel_Msg.Linear.X = obj.vm;
+%             attacker_vel_Msg.Angular.Z = u(1);
             
             send(obj.attacker_velocity_publisher, attacker_vel_Msg);
             

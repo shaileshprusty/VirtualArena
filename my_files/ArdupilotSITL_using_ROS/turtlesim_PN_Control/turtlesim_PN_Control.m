@@ -5,7 +5,7 @@ attacker_velocity_publisher = rospublisher('/turtle1/cmd_vel');
 
 dt = 0.1;
 vm = 0.4;
-N = 3;
+N = 10;
 
 target=[];
 target(1) = input('Target X: ');
@@ -32,7 +32,6 @@ va = VirtualArena(sys,...
     'StoppingCriteria'  , @(t,x,sysList)sqrt((sys.x(1)-target(1))^2 + (sys.x(2)-target(2))^2)<=0.1,...
     'DiscretizationStep', dt ,...
     'RealTime'          , 1 ,...
-    'PlottingStep'      , 1 ,...
-    'StepPlotFunction'  , @ex01StepPlotFunction);
+    'PlottingStep'      , 1 );
   
 log = va.run();

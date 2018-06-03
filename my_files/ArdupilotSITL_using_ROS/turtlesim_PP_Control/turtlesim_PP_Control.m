@@ -4,8 +4,8 @@ attacker_position_subscriber = rossubscriber('/turtle1/pose');
 attacker_velocity_publisher = rospublisher('/turtle1/cmd_vel');
 
 dt = 0.1;
-vm = 4;
-K = 3;
+vm = 0.4;
+K = 10;
 
 target=[];
 target(1) = input('Target X: ');
@@ -26,7 +26,7 @@ sys.initialCondition = {[attacker_position.X;
                          atan2(target(2) - attacker_position.Y, target(1) - attacker_position.X);
                          attacker_position.Theta]};
                      
-sys.controller = turtlesim_PP_IController(@(t,x) (K*(x(5)-x(4)))/vm);
+sys.controller = turtlesim_PP_IController(@(t,x) (-K*(x(5)-x(4)))/vm);
 
 va = VirtualArena(sys,...
     'StoppingCriteria'  , @(t,x,sysList)sqrt((sys.x(1)-target(1))^2 + (sys.x(2)-target(2))^2)<=0.1,...

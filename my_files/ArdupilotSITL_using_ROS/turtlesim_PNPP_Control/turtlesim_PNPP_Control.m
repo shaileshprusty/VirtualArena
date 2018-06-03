@@ -5,8 +5,8 @@ attacker_velocity_publisher = rospublisher('/turtle1/cmd_vel');
 
 dt = 0.1;
 vm = 0.4;
-K = 3;
-N = 3;
+K = 10;
+N = 10;
 switchGuidanceLaw = 10;
 
 target=[];

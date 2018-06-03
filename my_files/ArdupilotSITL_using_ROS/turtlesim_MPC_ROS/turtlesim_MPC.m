@@ -14,8 +14,8 @@ dt = 1;
 vm = 0.4;
 vt = 0.2;
 vd = 0.8;
-K = 30;
-N = 30;
+K = 10;
+N = 10;
 switchGuidanceLaw = 10;
 
 attacker_position = receive(attacker_position_subscriber,10);
@@ -37,16 +37,24 @@ sys = turtlesim_MPC_RealVehicleROS(N, ...
                                    defender_velocity_publisher ...
                                    );
 
+if(defender_position.Theta > 3.14)
+    defender_position.Theta = defender_position.Theta - 2^3.14;
+end
+
+if(defender_position.Theta < -3.14)
+    defender_position.Theta = defender_position.Theta + 2^3.14;
+end
+                               
 sys.initialCondition = {double([attacker_position.X;
-                         attacker_position.Y;
-                         defender_position.X;
-                         defender_position.Y;
-                         defender_position.Theta;
-                         target_position.X;
-                         target_position.Y;
-                         sqrt((target_position.X - attacker_position.X)^2 + (target_position.Y - attacker_position.Y)^2);
-                         atan2(target_position.Y - attacker_position.Y, target_position.X - attacker_position.X);
-                         attacker_position.Theta])};
+                                attacker_position.Y;
+                                defender_position.X;
+                                defender_position.Y;
+                                defender_position.Theta;
+                                target_position.X;
+                                target_position.Y;
+                                sqrt((target_position.X - attacker_position.X)^2 + (target_position.Y - attacker_position.Y)^2);
+                                atan2(target_position.Y - attacker_position.Y, target_position.X - attacker_position.X);
+                                attacker_position.Theta])};
 
 % % System with state and input noise covariance matrices
 % Q = diag(([0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1])/3)^2;
@@ -74,7 +82,7 @@ dtsys = DiscretizedSystem(sys,dt);
 
 dtsys.controller = MpcController(...
     'MpcOp'       , dtMpcOp ,...
-    'MpcOpSolver' , FminconMpcOpSolver('MpcOp', dtMpcOp) ...
+    'MpcOpSolver' , FminconMpcOpSolver('MpcOp', dtMpcOp, 'UseSymbolicEvaluation', 1) ...
     );
 
 va = VirtualArena(dtsys,...

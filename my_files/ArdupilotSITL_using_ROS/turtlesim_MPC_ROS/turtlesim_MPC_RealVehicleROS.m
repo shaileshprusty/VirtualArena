@@ -1,6 +1,7 @@
 classdef turtlesim_MPC_RealVehicleROS < CtSystem
 
     properties
+        count = 0
         N
         K
         switchGuidanceLaw
@@ -58,20 +59,8 @@ classdef turtlesim_MPC_RealVehicleROS < CtSystem
             target_position = receive(obj.target_position_subscriber,10);
             defender_position = receive(obj.defender_position_subscriber,10);
             
-%             position_params = [rover_LatLon.Latitude;rover_LatLon.Longitude;rover_angle.Data];  %Convert msg variable to matrix
-%             distance = sqrt((position_params(1)-obj.target(1))*(position_params(1)-obj.target(1)) + (position_params(2)-obj.target(2))*(position_params(2)-obj.target(2)));
-%             
-%             if (distance >= 0.0002)   
-%                 vel_Msg.Linear.X = obj.velocity_magnitude;
-%                 vel_Msg.Angular.Z = u(1);
-%                 send(obj.velocity_publisher,vel_Msg);
-%             else
-%                 vel_Msg.Linear.X = 0;
-%                 vel_Msg.Angular.Z = 0;
-%                 send(obj.velocity_publisher,vel_Msg);
-%             end    
-            
-            
+            attacker_target_distance = sqrt((attacker_position.X - target_position.X)^2 + (attacker_position.Y - target_position.Y)^2);
+            defender_attacker_distance = sqrt((defender_position.X - attacker_position.X)^2 + (defender_position.Y - attacker_position.Y)^2);
             
             xDot = [obj.vm*cos(x(10));  %Velocity of Attacker in x-dircetion
                     obj.vm*sin(x(10));  %Velocity of Attacker in y-dircetion
@@ -82,14 +71,26 @@ classdef turtlesim_MPC_RealVehicleROS < CtSystem
                     obj.vt*sin(target_position.Theta);  %Velocity of Target in y-dircetion
                     obj.vt*cos(target_position.Theta-x(9))-obj.vm*cos(x(10)-x(8));  %Velocity along Attacker-Target LOS
                     (obj.vt*sin(target_position.Theta-x(9))-obj.vm*sin(x(10)-x(9)))/x(8);   %Angular velocity of above equation
-                    ((((-1).^floor(ceil(t/obj.switchGuidanceLaw)))+1)/2)*(obj.N*((obj.vt*sin(target_position.Theta-x(9))-obj.vm*sin(x(10)-x(9)))/x(8)))+(1-((((-1).^floor(ceil(t/obj.switchGuidanceLaw)))+1)/2))*(((-obj.K*(x(10)-x(9)))/obj.vm))];  %Angular Velocity of Target
-
-            attacker_vel_Msg.Linear.X = obj.vm;
-            attacker_vel_Msg.Angular.Z = xDot(10);
-            target_vel_Msg.Linear.X = obj.vt;
-            target_vel_Msg.Angular.Z = 0;
-            defender_vel_Msg.Linear.X = obj.vd;
-            defender_vel_Msg.Angular.Z = u(1);
+%                     ((((-1).^floor(ceil(t/obj.switchGuidanceLaw)))+1)/2)*(obj.N*((obj.vt*sin(target_position.Theta-x(9))-obj.vm*sin(x(10)-x(9)))/x(8)))+(1-((((-1).^floor(ceil(t/obj.switchGuidanceLaw)))+1)/2))*(((-obj.K*(x(10)-x(9)))/obj.vm))];  %Angular Velocity of Target
+                    obj.N*((obj.vt*sin(target_position.Theta-x(9))-obj.vm*sin(x(10)-x(9)))/x(8))];
+                    
+            if (obj.count > 2)
+                if (attacker_target_distance >= 0.2 && defender_attacker_distance >= 0.2)   
+                    attacker_vel_Msg.Linear.X = obj.vm;
+                    attacker_vel_Msg.Angular.Z = xDot(10);
+                    target_vel_Msg.Linear.X = obj.vt;
+                    target_vel_Msg.Angular.Z = 0;
+                    defender_vel_Msg.Linear.X = obj.vd;
+                    defender_vel_Msg.Angular.Z = u(1);
+                else
+                    attacker_vel_Msg.Linear.X = 0;
+                    attacker_vel_Msg.Angular.Z = 0;
+                    target_vel_Msg.Linear.X = 0;
+                    target_vel_Msg.Angular.Z = 0;
+                    defender_vel_Msg.Linear.X = 0;
+                    defender_vel_Msg.Angular.Z = 0;
+                end
+            end
             
             send(obj.attacker_velocity_publisher, attacker_vel_Msg);
             send(obj.target_velocity_publisher, target_vel_Msg);
@@ -105,17 +106,26 @@ classdef turtlesim_MPC_RealVehicleROS < CtSystem
             target_position = receive(obj.target_position_subscriber,10);
             defender_position = receive(obj.defender_position_subscriber,10);
             
+            if(defender_position.Theta > 3.14)
+                defender_position.Theta = defender_position.Theta - 2^3.14;
+            end
+
+            if(defender_position.Theta < -3.14)
+                defender_position.Theta = defender_position.Theta + 2^3.14;
+            end
+            
             y = double([attacker_position.X;
-                 attacker_position.Y;
-            	 defender_position.X;
-                 defender_position.Y;
-                 defender_position.Theta;
-                 target_position.X;
-                 target_position.Y;
-            	 sqrt((target_position.X - attacker_position.X)^2 + (target_position.Y - attacker_position.Y)^2);
-                 atan2(target_position.Y - attacker_position.Y, target_position.X - attacker_position.X);
-                 attacker_position.Theta]);
+                        attacker_position.Y;
+                        defender_position.X;
+                        defender_position.Y;
+                        defender_position.Theta;
+                        target_position.X;
+                        target_position.Y;
+                        sqrt((target_position.X - attacker_position.X)^2 + (target_position.Y - attacker_position.Y)^2);
+                        atan2(target_position.Y - attacker_position.Y, target_position.X - attacker_position.X);
+                        attacker_position.Theta]);
         
+             obj.count = obj.count + 1;
         end
     
     end

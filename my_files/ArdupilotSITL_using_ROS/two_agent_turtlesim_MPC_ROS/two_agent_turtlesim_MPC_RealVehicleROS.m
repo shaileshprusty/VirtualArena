@@ -1,30 +1,31 @@
-classdef Two_Agent_RealVehicleROS   <   CtSystem
+classdef two_agent_turtlesim_MPC_RealVehicleROS < CtSystem
 
     properties
          
-        flag = 0
+        count = 0
         vm      % Attacker Velocity Magnitude
         vt      % Target Velocity Magnitude
-        target_data_subscriber
+        target_position_subscriber
         target_velocity_publisher
-        attacker_data_subscriber
+        attacker_position_subscriber
         attacker_velocity_publisher
 
     end
     
     methods
         
-        function obj = Two_Agent_RealVehicleROS(target_data_subscriber,...
-                                                target_velocity_publisher,...
-                                                attacker_data_subscriber,...
-                                                attacker_velocity_publisher,...
-                                                vm,...
-                                                vt)
+        function obj = two_agent_turtlesim_MPC_RealVehicleROS(target_position_subscriber, ...
+                                                              target_velocity_publisher, ...
+                                                              attacker_position_subscriber, ...
+                                                              attacker_velocity_publisher, ...
+                                                              vm, ...
+                                                              vt ...
+                                                              )
             
             obj = obj@CtSystem('nx',7,'nu',1,'ny',7);            
-            obj.target_data_subscriber = target_data_subscriber;
+            obj.target_position_subscriber = target_position_subscriber;
             obj.target_velocity_publisher = target_velocity_publisher;
-            obj.attacker_data_subscriber = attacker_data_subscriber;            
+            obj.attacker_position_subscriber = attacker_position_subscriber;            
             obj.attacker_velocity_publisher = attacker_velocity_publisher;
             obj.vm = vm;
             obj.vt = vt;
@@ -36,14 +37,12 @@ classdef Two_Agent_RealVehicleROS   <   CtSystem
             target_velocity_Msg = rosmessage(obj.target_velocity_publisher);
             attacker_velocity_Msg = rosmessage(obj.attacker_velocity_publisher);
             
-            target_Pose_Data = receive(obj.target_data_subscriber,10);
-            attacker_Pose_data = receive(obj.attacker_data_subscriber,10);
-            o1 = [target_Pose_Data.X;target_Pose_Data.Y];
-            o2 = [attacker_Pose_data.X;attacker_Pose_data.Y];
-            d = sqrt((o1(1)-o2(1))*(o1(1)-o2(1)) + (o1(2)-o2(2))*(o1(2)-o2(2)));    %distance between target and attacker.
+            target_position = receive(obj.target_data_subscriber,10);
+            attacker_position = receive(obj.attacker_data_subscriber,10);
+            distance = sqrt((target_position.X-attacker_position.X)^2 + (target_position.Y-attacker_position.Y)^2);    %distance between target and attacker.
             
-            if obj.flag > 2             %to avoid initial random values.
-                if (d >= 0.2)                    
+            if obj.count > 2             %to avoid initial random values.
+                if (distance >= 0.2)                    
                     target_velocity_Msg.Linear.X = obj.vt;
                     attacker_velocity_Msg.Linear.X = obj.vm;
                     target_velocity_Msg.Angular.Z = 0;
@@ -72,29 +71,28 @@ classdef Two_Agent_RealVehicleROS   <   CtSystem
         function y = h(obj,t,x,varargin)
         
             % Subscriber read position of the vehicle the vehicle;
-            target_pose_data = receive(obj.target_data_subscriber,10);
-            attacker_pose_data = receive(obj.attacker_data_subscriber,10);           
-            theta = attacker_pose_data.Theta;
+            target_position = receive(obj.target_data_subscriber,10);
+            attacker_position = receive(obj.attacker_data_subscriber,10);           
             
             % bounding theta of turtle between -pi to pi
-            if( theta > 3.14 )
-                theta = theta - 2*3.14;
+            if( attacker_position.Theta > 3.14 )
+                attacker_position.Theta = attacker_position.Theta - 2*3.14;
             end
-            if( theta < -3.14 )
-                theta = theta + 2*3.14;
+            if( attacker_position.Theta < -3.14 )
+                attacker_position.Theta = attacker_position.Theta + 2*3.14;
             end
             
             %state equation ...... e.g, Y = Cx + Du (for linear systems).  
-            y = double([attacker_pose_data.X;
-                 attacker_pose_data.Y;
-                 theta;
-                 target_pose_data.X;
-                 target_pose_data.Y;
-                 sqrt((target_pose_data.X - attacker_pose_data.X)^2 + (target_pose_data.Y - attacker_pose_data.Y)^2);
-                 (atan2((target_pose_data.Y - attacker_pose_data.Y),(target_pose_data.X - attacker_pose_data.X)))]);
+            y = double([attacker_position.X;
+                 attacker_position.Y;
+                 attacker_position.Theta;
+                 target_position.X;
+                 target_position.Y;
+                 sqrt((target_position.X - attacker_position.X)^2 + (target_position.Y - attacker_position.Y)^2);
+                 (atan2((target_position.Y - attacker_position.Y),(target_position.X - attacker_position.X)))]);
              
             disp('---taking output feedback---'); 
-            obj.flag = obj.flag + 1;        
+            obj.count = obj.count + 1;        
         end            
     end    
 end

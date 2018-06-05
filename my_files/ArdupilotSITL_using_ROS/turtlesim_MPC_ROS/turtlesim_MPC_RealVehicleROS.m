@@ -107,11 +107,11 @@ classdef turtlesim_MPC_RealVehicleROS < CtSystem
             defender_position = receive(obj.defender_position_subscriber,10);
             
             if(defender_position.Theta > 3.14)
-                defender_position.Theta = defender_position.Theta - 2^3.14;
+                defender_position.Theta = defender_position.Theta - 2*3.14;
             end
 
             if(defender_position.Theta < -3.14)
-                defender_position.Theta = defender_position.Theta + 2^3.14;
+                defender_position.Theta = defender_position.Theta + 2*3.14;
             end
             
             y = double([attacker_position.X;

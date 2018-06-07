@@ -19,7 +19,9 @@ sys = turtlesim_PP_RealVehicleROS(target, ...
                                   attacker_position_subscriber, ...
                                   attacker_velocity_publisher ...
                                   );
-                             
+ 
+
+                              
 sys.initialCondition = {[attacker_position.X;
                          attacker_position.Y;
                          sqrt((target(1) - attacker_position.X)^2 + (target(2) - attacker_position.Y)^2);

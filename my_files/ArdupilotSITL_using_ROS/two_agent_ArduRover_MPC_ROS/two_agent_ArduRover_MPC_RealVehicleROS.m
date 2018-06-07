@@ -50,21 +50,23 @@ classdef two_agent_ArduRover_MPC_RealVehicleROS < CtSystem
             distance = sqrt((target_LatLon.Latitude-attacker_LatLon.Latitude)^2 + (target_LatLon.Longitude-attacker_LatLon.Longitude)^2);    %distance between target and attacker.
             
             if obj.count > 2             %to avoid initial random values.
-                if (distance >= 0.2)                    
+                disp('--------publishing--------');
+                if (distance >= 0.00002)                    
                     target_velocity_Msg.Linear.X = obj.vt;
                     attacker_velocity_Msg.Linear.X = obj.vm;
                     target_velocity_Msg.Angular.Z = 0;
-                    attacker_velocity_Msg.Angular.Z = double(subs(u(1)));
+                    attacker_velocity_Msg.Angular.Z = u(1);
+                    disp(u(1));
                 else
                     target_velocity_Msg.Linear.X = 0;
                     attacker_velocity_Msg.Linear.X = 0;
                     target_velocity_Msg.Angular.Z = 0;
                     attacker_velocity_Msg.Angular.Z = 0;
+                    disp(0);
                 end    
                 send(obj.attacker_velocity_publisher,attacker_velocity_Msg);
                 send(obj.target_velocity_publisher,target_velocity_Msg);
             end   
-            disp('--------publishing--------')
             
             %state equation ...... e.g xDot = Ax + Bu (for linear systems). 
             xDot = [obj.vm*cos(x(3));
@@ -89,13 +91,13 @@ classdef two_agent_ArduRover_MPC_RealVehicleROS < CtSystem
             end
             
             %state equation ...... e.g, Y = Cx + Du (for linear systems).  
-            y = double([attacker_LatLon.Latitude;
+            y = [attacker_LatLon.Latitude;
                  attacker_LatLon.Longitude;
                  3.14*attacker_angle.Data/180;
                  target_LatLon.Latitude;
                  target_LatLon.Longitude;
                  sqrt((target_LatLon.Latitude - attacker_LatLon.Latitude)^2 + (target_LatLon.Longitude - attacker_LatLon.Longitude)^2);
-                 (atan2((target_LatLon.Longitude - attacker_LatLon.Longitude),(target_LatLon.Latitude - attacker_LatLon.Latitude)))]);
+                 (atan2((target_LatLon.Longitude - attacker_LatLon.Longitude),(target_LatLon.Latitude - attacker_LatLon.Latitude)))];
              
             disp('---taking output feedback---'); 
             obj.count = obj.count + 1;        

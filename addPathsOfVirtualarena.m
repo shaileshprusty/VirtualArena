@@ -1,4 +1,5 @@
 addpath(pwd);
+addpath(genpath([pwd,filesep,'my_files']));
 addpath(genpath([pwd,filesep,'Controllers']));
 addpath(genpath([pwd,filesep,'Integrators']));
 addpath(genpath([pwd,filesep,'MpcOps']));

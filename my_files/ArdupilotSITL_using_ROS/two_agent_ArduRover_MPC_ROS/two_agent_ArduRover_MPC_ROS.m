@@ -1,7 +1,7 @@
 %% Using MPC controller to decrease the distance between two turtle.
 
-% Turtle1 moving with constant velocity
-% Turtle2 using control variable from MPC to minimize the given cost function.
+% Target moving with constant velocity
+% Attacker using control variable from MPC to minimize the given cost function.
 
 clc; close all; clear all;
 
@@ -39,15 +39,18 @@ if( attacker_angle.Data > 180 )
    attacker_angle.Data = attacker_angle.Data - 2*180;
 end
 
+[attacker_utmX,attacker_utmY]=deg2utm(attacker_LatLon.Latitude,attacker_LatLon.Longitude);
+[target_utmX,target_utmY]=deg2utm(target_LatLon.Latitude,target_LatLon.Longitude);
+
 %% ........
 
-realSystem.initialCondition = {[attacker_LatLon.Latitude;
-                                       attacker_LatLon.Longitude;
+realSystem.initialCondition = {[attacker_utmX;
+                                       attacker_utmY;
                                        3.14*attacker_angle.Data/180;
-                                       target_LatLon.Latitude;
-                                       target_LatLon.Longitude;
-                                       sqrt((target_LatLon.Latitude - attacker_LatLon.Latitude)^2 + (target_LatLon.Longitude - attacker_LatLon.Longitude)^2);
-                                       (atan2((target_LatLon.Longitude - attacker_LatLon.Longitude),(target_LatLon.Latitude - attacker_LatLon.Latitude)))]};
+                                       target_utmX;
+                                       target_utmY;
+                                       sqrt((target_utmX - attacker_utmX)^2 + (target_utmY - attacker_utmY)^2);
+                                       (atan2((target_utmY - attacker_utmY),(target_utmX - attacker_utmX)))]};
                                                     
 mpcOp = ICtMpcOp( ...
                 'System'               , realSystem,...

@@ -1,4 +1,4 @@
-clc; clear all; close all;
+ clc; clear all; close all;
 
 LatLon_subscriber = rossubscriber('/mavros/global_position/global');
 angle_subscriber = rossubscriber('/mavros/global_position/compass_hdg');

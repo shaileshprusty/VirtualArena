@@ -46,6 +46,15 @@ classdef turtlesim_RealVehicleROS < CtSystem
             %% Subscriber to read position of the vehicle
 
             turtle_position = receive(obj.position_subscriber,10) ;
+            
+            % bounding theta of turtle between -pi to pi
+            if( turtle_position.Theta > 3.14 )
+                turtle_position.Theta = turtle_position.Theta - 2*3.14;
+            end
+            if( turtle_position.Theta < -3.14 )
+                turtle_position.Theta = turtle_position.Theta + 2*3.14;
+            end
+            
             y = [turtle_position.X;
                  turtle_position.Y;
             	 turtle_position.Theta];

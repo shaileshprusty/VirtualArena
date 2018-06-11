@@ -48,8 +48,8 @@ classdef ardurover_PN_RealVehicleROS < CtSystem
             
             xDot = [obj.vm*cos(x(5));  %Velocity of Attacker in x-dircetion
                     obj.vm*sin(x(5));  %Velocity of Attacker in y-dircetion
-                    -obj.vm*cos(x(4)-x(3));  %Velocity along Attacker-Target LOS
-                    -obj.vm*sin(x(4)-x(3))/x(3);   %Angular velocity of above equation
+                    -obj.vm*cos(x(5)-x(4));  %Velocity along Attacker-Target LOS
+                    -obj.vm*sin(x(5)-x(4))/x(3);   %Angular velocity of above equation
                     u(1)    %Angular Velocity of Attacker
                     ];  
  

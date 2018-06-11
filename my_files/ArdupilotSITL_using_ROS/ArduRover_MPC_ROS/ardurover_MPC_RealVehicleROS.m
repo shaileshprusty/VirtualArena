@@ -71,23 +71,35 @@ classdef ardurover_MPC_RealVehicleROS < CtSystem
             defender_LatLon = receive(obj.defender_LatLon_subscriber,10);
 %             defender_angle = receive(obj.defender_angle_subscriber,10);
 
-            attacker_target_distance = sqrt((attacker_LatLon.Latitude - target_LatLon.Longitude)^2 + (attacker_LatLon.Longitude - target_LatLon.Longitude)^2);
-            defender_attacker_distance = sqrt((defender_LatLon.Latitude - attacker_LatLon.Latitude)^2 + (defender_LatLon.Latitude - attacker_LatLon.Longitude)^2);
+            %% bounding theta of rover between -pi to pi
+
+             target_angle.Data = 90 - target_angle.Data;
+             
+            %% Convert to UTM
+
+            [attacker_utmX, attacker_utmY] = deg2utm(attacker_LatLon.Latitude, attacker_LatLon.Longitude);
+            [target_utmX, target_utmY] = deg2utm(target_LatLon.Latitude, target_LatLon.Longitude);
+            [defender_utmX, defender_utmY] = deg2utm(defender_LatLon.Latitude, defender_LatLon.Longitude);
+
+            %% ......                               
+
+            attacker_target_distance = sqrt((attacker_utmX - target_utmX)^2 + (attacker_utmY - target_utmY)^2);
+            defender_attacker_distance = sqrt((defender_utmX - attacker_utmX)^2 + (defender_utmY - attacker_utmY)^2);
             
             xDot = [obj.vm*cos(x(10));  %Velocity of Attacker in x-dircetion
                     obj.vm*sin(x(10));  %Velocity of Attacker in y-dircetion
                     obj.vd*cos(x(5));   %Velocity of Defender in x-dircetion
                     obj.vd*sin(x(5));   %Velocity of Defender in x-dircetion
                     u(1);               %Angular Velocity of Defender
-                    obj.vt*cos(target_angle.Data);  %Velocity of Target in x-dircetion
-                    obj.vt*sin(target_angle.Data);  %Velocity of Target in y-dircetion
-                    obj.vt*cos(target_angle.Data-x(9))-obj.vm*cos(x(10)-x(9));  %Velocity along Attacker-Target LOS
-                    (obj.vt*sin(target_angle.Data-x(9))-obj.vm*sin(x(10)-x(9)))/x(8);   %Angular velocity of above equation
+                    obj.vt*cos(deg2rad(target_angle.Data));  %Velocity of Target in x-dircetion
+                    obj.vt*sin(deg2rad(target_angle.Data));  %Velocity of Target in y-dircetion
+                    obj.vt*cos(deg2rad(target_angle.Data)-x(9))-obj.vm*cos(x(10)-x(9));  %Velocity along Attacker-Target LOS
+                    (obj.vt*sin(deg2rad(target_angle.Data)-x(9))-obj.vm*sin(x(10)-x(9)))/x(8);   %Angular velocity of above equation
 %                     ((((-1).^floor(ceil(t/obj.switchGuidanceLaw)))+1)/2)*(obj.N*((obj.vt*sin(target_angle.Data-x(9))-obj.vm*sin(x(10)-x(9)))/x(8)))+(1-((((-1).^floor(ceil(t/obj.switchGuidanceLaw)))+1)/2))*(((-obj.K*(x(10)-x(9)))/obj.vm))];  %Angular Velocity of Target
-                    obj.N*((obj.vt*sin(target_angle.Data-x(9))-obj.vm*sin(x(10)-x(9)))/x(8))];
+                    obj.N*((obj.vt*sin(deg2rad(target_angle.Data)-x(9))-obj.vm*sin(x(10)-x(9)))/x(8))];
                     
             if (obj.count > 2)
-                if (attacker_target_distance >= 0.2 && defender_attacker_distance >= 0.2)   
+                if (attacker_target_distance >= 1 && defender_attacker_distance >= 1)   
                     attacker_vel_Msg.Linear.X = obj.vm;
                     attacker_vel_Msg.Angular.Z = xDot(10);
                     target_vel_Msg.Linear.X = obj.vt;
@@ -121,24 +133,30 @@ classdef ardurover_MPC_RealVehicleROS < CtSystem
             defender_LatLon = receive(obj.defender_LatLon_subscriber,10);
             defender_angle = receive(obj.defender_angle_subscriber,10);
 
-            if(attacker_angle.Data > 180)
-                attacker_angle.Data = attacker_angle.Data - 2*180;
-            end
+            %% bounding theta of rover between -pi to pi
+
+            attacker_angle.Data = 90 - attacker_angle.Data;
+            defender_angle.Data = 90 - defender_angle.Data;
+
+            %% Convert to UTM
+
+            [attacker_utmX, attacker_utmY] = deg2utm(attacker_LatLon.Latitude, attacker_LatLon.Longitude);
+            [target_utmX, target_utmY] = deg2utm(target_LatLon.Latitude, target_LatLon.Longitude);
+            [defender_utmX, defender_utmY] = deg2utm(defender_LatLon.Latitude, defender_LatLon.Longitude);
+
+            %% ......                               
+
             
-            if(defender_angle.Data > 180)
-                defender_angle.Data = defender_angle.Data - 2*180;
-            end
-            
-            y = double([attacker_LatLon.Latitude;
-                        attacker_LatLon.Longitude;
-                        defender_LatLon.Latitude;
-                        defender_LatLon.Longitude;
-                        3.14*defender_angle.Data/180;
-                        target_LatLon.Latitude;
-                        target_LatLon.Longitude;
-                        sqrt((target_LatLon.Latitude - attacker_LatLon.Latitude)^2 + (target_LatLon.Longitude - attacker_LatLon.Longitude)^2);
-                        atan2(target_LatLon.Longitude - attacker_LatLon.Longitude, target_LatLon.Latitude - attacker_LatLon.Latitude);
-                        3.14*attacker_angle.Data/180]);
+            y = double([attacker_utmX;
+                        attacker_utmY;
+                        defender_utmX;
+                        defender_utmY;
+                        deg2rad(defender_angle.Data);
+                        target_utmX;
+                        target_utmY;
+                        sqrt((target_utmX - attacker_utmX)^2 + (target_utmY - attacker_utmY)^2);
+                        atan2(target_utmY - attacker_utmY, target_utmX - attacker_utmX);
+                        deg2rad(attacker_angle.Data)]);
         
              obj.count = obj.count + 1;
         end

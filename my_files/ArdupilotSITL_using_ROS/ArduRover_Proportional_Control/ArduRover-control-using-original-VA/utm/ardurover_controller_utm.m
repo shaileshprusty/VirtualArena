@@ -1,8 +1,8 @@
 clc; clear all; close all;
 
-LatLon_subscriber = rossubscriber('/mavros/global_position/global');
-angle_subscriber = rossubscriber('/mavros/global_position/compass_hdg');
-velocity_publisher = rospublisher('/mavros/setpoint_velocity/cmd_vel_unstamped');
+LatLon_subscriber = rossubscriber('/target/mavros/global_position/global');
+angle_subscriber = rossubscriber('/target/mavros/global_position/compass_hdg');
+velocity_publisher = rospublisher('/target/mavros/setpoint_velocity/cmd_vel_unstamped');
 
 velocity_magnitude = 3;
 dt = 1;

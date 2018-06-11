@@ -34,8 +34,6 @@ classdef ardurover_PN_IController_utm < Controller
     
 
     properties
-        
-        N = 1;
         law = [];
         
     end
@@ -46,15 +44,11 @@ classdef ardurover_PN_IController_utm < Controller
         function obj = ardurover_PN_IController_utm(law, N)            
             obj = obj@Controller();
             obj.law = law;
-            obj.N = N;
         end
                 
         function u = computeInput(obj,varargin) 
-%             angle_error = rem(obj.law(varargin{:}),360);
-%             if(angle_error > 180)
-%                 angle_error = angle_error - 360;
-%             end
-            u = obj.N*obj.law(varargin{:});
+
+            u = obj.law(varargin{:});
         end
                
     end

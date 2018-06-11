@@ -20,8 +20,8 @@ attacker_LatLon = receive(attacker_LatLon_subscriber , 10);
 attacker_angle = receive(attacker_angle_subscriber , 10);
 
 dt = 1;
-vm = 80;
-vt = 20;
+vm = 0.5;
+vt = 0.3;
 
 %system initialization.
 realSystem = two_agent_ArduRover_MPC_RealVehicleROS(target_LatLon_subscriber,...
@@ -33,24 +33,24 @@ realSystem = two_agent_ArduRover_MPC_RealVehicleROS(target_LatLon_subscriber,...
                                                     vm,...
                                                     vt);    
 
-%% Angle correction for turtlesim in order to constain it between -pi to pi 
+%% bounding theta of rover between -pi to pi
 
-if( attacker_angle.Data > 180 )
-   attacker_angle.Data = attacker_angle.Data - 2*180;
-end
+ attacker_angle.Data = 90 - attacker_angle.Data;
 
-[attacker_utmX,attacker_utmY]=deg2utm(attacker_LatLon.Latitude,attacker_LatLon.Longitude);
-[target_utmX,target_utmY]=deg2utm(target_LatLon.Latitude,target_LatLon.Longitude);
+%% Convert to UTM
+
+[attacker_utmX, attacker_utmY] = deg2utm(attacker_LatLon.Latitude, attacker_LatLon.Longitude);
+[target_utmX, target_utmY] = deg2utm(target_LatLon.Latitude, target_LatLon.Longitude);
 
 %% ........
 
 realSystem.initialCondition = {[attacker_utmX;
-                                       attacker_utmY;
-                                       3.14*attacker_angle.Data/180;
-                                       target_utmX;
-                                       target_utmY;
-                                       sqrt((target_utmX - attacker_utmX)^2 + (target_utmY - attacker_utmY)^2);
-                                       (atan2((target_utmY - attacker_utmY),(target_utmX - attacker_utmX)))]};
+                                attacker_utmY;
+                                deg2rad(attacker_angle.Data);
+                                target_utmX;
+                                target_utmY;
+                                sqrt((target_utmX - attacker_utmX)^2 + (target_utmY - attacker_utmY)^2);
+                                (atan2((target_utmY - attacker_utmY),(target_utmX - attacker_utmX)))]};
                                                     
 mpcOp = ICtMpcOp( ...
                 'System'               , realSystem,...

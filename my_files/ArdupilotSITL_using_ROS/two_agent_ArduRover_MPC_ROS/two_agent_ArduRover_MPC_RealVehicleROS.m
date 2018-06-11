@@ -48,6 +48,11 @@ classdef two_agent_ArduRover_MPC_RealVehicleROS < CtSystem
             attacker_LatLon = receive(obj.attacker_LatLon_subscriber , 10);
 %             attacker_angle = receive(obj.attacker_angle_subscriber , 10);
 
+            %% bounding theta of rover between -pi to pi
+
+            target_angle.Data = 90 - target_angle.Data;
+
+ %% ......
             [attacker_utmX,attacker_utmY]=deg2utm(attacker_LatLon.Latitude,attacker_LatLon.Longitude);
             [target_utmX,target_utmY]=deg2utm(target_LatLon.Latitude,target_LatLon.Longitude);
 
@@ -55,7 +60,7 @@ classdef two_agent_ArduRover_MPC_RealVehicleROS < CtSystem
             
             if obj.count > 2             %to avoid initial random values.
                 disp('--------publishing--------');
-                if (distance >= 0.00002)                    
+                if (distance >= 2)                    
                     target_velocity_Msg.Linear.X = obj.vt;
                     attacker_velocity_Msg.Linear.X = obj.vm;
                     target_velocity_Msg.Angular.Z = 0;
@@ -72,18 +77,14 @@ classdef two_agent_ArduRover_MPC_RealVehicleROS < CtSystem
                 send(obj.target_velocity_publisher,target_velocity_Msg);
             end   
             
-            if( target_angle.Data > 180 )
-                target_angle.Data = target_angle.Data - 2*180;
-            end
-            
             %state equation ...... e.g xDot = Ax + Bu (for linear systems). 
             xDot = [obj.vm*cos(x(3));
                     obj.vm*sin(x(3));
                     u(1);
-                    obj.vt*cos(3.14*target_angle.Data/180);
-                    obj.vt*sin(3.14*target_angle.Data/180);
-                    -obj.vt*cos(3.14*target_angle.Data/180-x(7))+obj.vm*cos(x(3)-x(7));
-                    (obj.vt*sin(3.14*target_angle.Data/180-x(7))-obj.vm*sin(x(3)-x(7)))/x(6)];                
+                    obj.vt*cos(deg2rad(target_angle.Data));
+                    obj.vt*sin(deg2rad(target_angle.Data));
+                    -obj.vt*cos(deg2rad(target_angle.Data)-x(7))+obj.vm*cos(x(3)-x(7));
+                    (obj.vt*sin(deg2rad(target_angle.Data)-x(7))-obj.vm*sin(x(3)-x(7)))/x(6)];                
         end
         
         function y = h(obj,t,x,varargin)
@@ -93,18 +94,18 @@ classdef two_agent_ArduRover_MPC_RealVehicleROS < CtSystem
             attacker_LatLon = receive(obj.attacker_LatLon_subscriber,10);           
             attacker_angle = receive(obj.attacker_angle_subscriber,10);
             
-            % bounding theta of rover between -pi to pi
-            if( attacker_angle.Data > 180 )
-                attacker_angle.Data = attacker_angle.Data - 2*180;
-            end
-            
             [attacker_utmX,attacker_utmY]=deg2utm(attacker_LatLon.Latitude,attacker_LatLon.Longitude);
             [target_utmX,target_utmY]=deg2utm(target_LatLon.Latitude,target_LatLon.Longitude);
 
+             %% bounding theta of rover between -pi to pi
+
+            attacker_angle.Data = 90 - attacker_angle.Data;
+
+%% ........
             %state equation ...... e.g, Y = Cx + Du (for linear systems).  
             y = [attacker_utmX;
                  attacker_utmY;
-                 3.14*attacker_angle.Data/180;
+                 deg2rad(attacker_angle.Data);
                  target_utmX;
                  target_utmY;
                  sqrt((target_utmX - attacker_utmX)^2 + (target_utmY - attacker_utmY)^2);

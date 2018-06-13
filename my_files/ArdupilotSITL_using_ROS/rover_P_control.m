@@ -1,41 +1,38 @@
-mysub1 = rossubscriber('/mavros/global_position/global');
-mysub2 = rossubscriber('/mavros/global_position/compass_hdg');
-[mypub , pubmsg] = rospublisher('/mavros/setpoint_velocity/cmd_vel_unstamped');
+clc; clear all; close all; 
 
-target_LO = input('Target LO : ');
+LatLon_sub = rossubscriber('/mavros/global_position/global');
+angle_sub = rossubscriber('/mavros/global_position/compass_hdg');
+[velocity_pub , vel_msg] = rospublisher('/mavros/setpoint_velocity/cmd_vel_unstamped');
+
 target_LA = input('Target LA : ');
+target_LO = input('Target LO : ');
 
-Vk = 500;
-kp = 0.5;
+[utm_targetX, utm_targetY] = deg2utm(target_LA,target_LO);
+
+Vk = 0.3;
+kp = 0.05;
 
 while(1)
-    position_LA = mysub1.LatestMessage.Latitude;
-    position_LO = mysub1.LatestMessage.Longitude;
+    [utmX,utmY] = deg2utm(LatLon_sub.LatestMessage.Latitude, LatLon_sub.LatestMessage.Longitude);
 
-    theta = mysub2.LatestMessage.Data;
+    theta = 90 - angle_sub.LatestMessage.Data;
 
-    LOS_dist = sqrt((target_LO-position_LO)*(target_LO-position_LO)+(target_LA-position_LA)*(target_LA-position_LA));
+    LOS_dist = sqrt((utm_targetY-utmY)^2+(utm_targetX-utmX)^2);
 
-    alpha = atan2((target_LO-position_LO),(target_LA-position_LA));
+    alpha = atan2((utm_targetY-utmY),(utm_targetX-utmX));
 
-    beta = 3.14*theta/180.0 - alpha;
+    angle_error = rem(rad2deg(alpha) - theta,360);
     
-    if (beta >= 3.14)
-        beta = beta - 2*3.14;
-    end
-    
-    if (beta <= -3.14)
-        beta = beta + 2*3.14;
-    end
-    
-    if (LOS_dist >= 0.00012)
-        pubmsg.Linear.X = Vk;
-        pubmsg.Angular.Z = kp*beta;
+    if (LOS_dist >= 1)
+%         vel_msg.Linear.X = Vk*(1 - abs(angle_error)/180);
+        vel_msg.Linear.X = Vk;
+        vel_msg.Angular.Z = kp*angle_error;
+        send(velocity_pub , vel_msg);
     else
-        pubmsg.Linear.X = 0;
-        pubmsg.Linear.Y = 0;
-        pubmsg.Angular.Z = 0;
+        vel_msg.Linear.X = 0;
+        vel_msg.Linear.Y = 0;
+        vel_msg.Angular.Z = 0;
+        send(velocity_pub , vel_msg);
+        break;
     end
-  
-    send(mypub , pubmsg);
 end

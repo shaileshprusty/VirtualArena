@@ -40,8 +40,8 @@ classdef single_agent_ardurover_MPC_RealVehicleROS_utm < CtSystem
             
             if obj.count > 2             %to avoid initial random values.
                 disp('--------publishing--------');
-%                 if (distance >= 2 && obj.flag == 1)
-                if (distance >= 2)
+                if (distance >= 2 && obj.flag == 1)
+%                 if (distance >= 2)
                     vel_Msg.Linear.X = obj.velocity_magnitude;
                     vel_Msg.Angular.Z = u(1);
                     send(obj.velocity_publisher,vel_Msg);

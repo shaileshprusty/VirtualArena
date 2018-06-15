@@ -32,8 +32,8 @@ classdef ardurover_RealVehicleROS_utm < CtSystem
             
             distance = sqrt((utmX-obj.target(1))^2 + (utmY-obj.target(2))^2)
             
-%             if (distance >= 2 && obj.flag == 1)
-            if (distance >= 2)   
+%             if (distance >= 0.2 && obj.flag == 1)
+            if (distance >= 0.2)   
                 vel_Msg.Linear.X = obj.velocity_magnitude;
                 vel_Msg.Angular.Z = u(1);
                 send(obj.velocity_publisher,vel_Msg);
@@ -57,12 +57,6 @@ classdef ardurover_RealVehicleROS_utm < CtSystem
 
             rover_LatLon = receive(obj.LatLon_subscriber,10);
             rover_angle = receive(obj.angle_subscriber,10);
-            
-%             if(rover_angle.Data < 270)
-%                 rover_angle.Data = 90 - rover_angle.Data;
-%             else
-%                 rover_angle.Data = 90 - rover_angle.Data + 360;
-%             end
 
             [utmX, utmY] = deg2utm(rover_LatLon.Latitude, rover_LatLon.Longitude);
             

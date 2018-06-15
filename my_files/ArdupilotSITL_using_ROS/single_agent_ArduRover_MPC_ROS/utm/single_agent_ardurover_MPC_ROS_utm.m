@@ -16,8 +16,11 @@ angle_Msg = receive(angle_subscriber, 10);
 dt = 1;
 velocity_magnitude = 0.5;
 
-a = input('Target X: ');
-b = input('Target Y: ');
+% a = input('Target X: ');
+% b = input('Target Y: ');
+
+a = 28.5448836;
+b = 77.2712178;
 
 [a,b] = deg2utm(a,b);
 

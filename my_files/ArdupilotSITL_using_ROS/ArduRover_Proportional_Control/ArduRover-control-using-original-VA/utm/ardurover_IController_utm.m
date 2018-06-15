@@ -54,12 +54,7 @@ classdef ardurover_IController_utm < Controller
             if(angle_error > 180)
                 angle_error = angle_error - 360;
             end
-%             if( angle_error > 3.14 )
-%                 angle_error = angle_error - 2*3.14;
-%             end
-%             if( angle_error < -3.14 )
-%                 angle_error = angle_error + 2*3.14;
-%             end
+
             u = obj.kp*angle_error;
         end
                

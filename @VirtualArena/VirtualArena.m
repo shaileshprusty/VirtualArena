@@ -703,191 +703,193 @@ classdef VirtualArena < handle
             
             h = [];
             
-            maxColumn = obj.defaultPlotMaxColumn;
-            maxRows   = obj.defaultPlotMaxRows;
-            
-            nv = size(signal,1);
-            
-            nColumns = ceil(nv/maxRows);
-            if nColumns> maxColumn
-                return
-            end
-            nRows    = ceil(nv/nColumns);
-            
-            plotEstimate   = ~isempty(estimate);
-            plotPrediction = ~isempty(prediction);
-            
-            h = zeros((plotEstimate+plotPrediction+1)*nv,1);
-            iPlot = 1;
-            
-            for i=1:nv
-                
-                subplot(nRows,nColumns,i);
-                
-                h(iPlot) = plot(timeSignal,signal(i,:)); hold on
-                iPlot = iPlot+1;
-                
-                if plotPrediction
-                    h(iPlot) = plot(timePrediction,prediction(i,:),'--'); hold on
-                    iPlot = iPlot+1;
-                end
-                
-            end
-            
-            for i=1:size(estimate,1)
-                if plotEstimate
-                    subplot(nRows,nColumns,i);
-                    h(iPlot) = plot(timeSignal,estimate(i,:),'--'); hold on
-                    iPlot = iPlot+1;
-                end
-            end
+%             maxColumn = obj.defaultPlotMaxColumn;
+%             maxRows   = obj.defaultPlotMaxRows;
+%             
+%             nv = size(signal,1);
+%             
+%             nColumns = ceil(nv/maxRows);
+%             if nColumns> maxColumn
+%                 return
+%             end
+%             nRows    = ceil(nv/nColumns);
+%             
+%             plotEstimate   = ~isempty(estimate);
+%             plotPrediction = ~isempty(prediction);
+%             
+%             h = zeros((plotEstimate+plotPrediction+1)*nv,1);
+%             iPlot = 1;
+%             
+%             for i=1:nv
+%                 
+%                 subplot(nRows,nColumns,i);
+%                 
+%                 h(iPlot) = plot(timeSignal,signal(i,:)); hold on
+%                 iPlot = iPlot+1;
+%                 
+%                 if plotPrediction
+%                     h(iPlot) = plot(timePrediction,prediction(i,:),'--'); hold on
+%                     iPlot = iPlot+1;
+%                 end
+%                 
+%             end
+%             
+%             for i=1:size(estimate,1)
+%                 if plotEstimate
+%                     subplot(nRows,nColumns,i);
+%                     h(iPlot) = plot(timeSignal,estimate(i,:),'--'); hold on
+%                     iPlot = iPlot+1;
+%                 end
+%             end
             
         end
         
         function h = defaultStepPlotFunction(obj,systemsList,log,oldHandles,k,varargin)
-            if oldHandles~=0
-                delete(oldHandles);
-            end
-            
-            if nargin ==6
-                figO = varargin{1}-1;
-            else
-                figO = 0;
-            end
+%             if oldHandles~=0
+%                 delete(oldHandles);
+%             end
+%             
+%             if nargin ==6
+%                 figO = varargin{1}-1;
+%             else
+%                 figO = 0;
+%             end
             
             h = [];
             
-            for sysId = 1:length(systemsList)
-                figure(figO+sysId);
-                est   = [];
-                pred  = [];
-                tPred = [];
-                t = log{sysId}.time(:,1:k);
-                x = log{sysId}.stateTrajectory(:,1:k);
-                u = log{sysId}.inputTrajectory(:,1:k);
-                
-                if ~isempty(systemsList{sysId}.stateObserver)
-                    est = log{sysId}.observerStateTrajectory(1:systemsList{sysId}.nx,1:k);
-                end
-                
-                figure(figO+sysId);
-                hi = obj.plotSignalPredictionAndEstimate([x;u],est,pred,t,tPred);
-                h = [h;hi];
-                
-            end
+%             for sysId = 1:length(systemsList)
+%                 figure(figO+sysId);
+%                 est   = [];
+%                 pred  = [];
+%                 tPred = [];
+%                 t = log{sysId}.time(:,1:k);
+%                 x = log{sysId}.stateTrajectory(:,1:k);
+%                 u = log{sysId}.inputTrajectory(:,1:k);
+%                 
+%                 if ~isempty(systemsList{sysId}.stateObserver)
+%                     est = log{sysId}.observerStateTrajectory(1:systemsList{sysId}.nx,1:k);
+%                 end
+%                 
+%                 figure(figO+sysId);
+%                 hi = obj.plotSignalPredictionAndEstimate([x;u],est,pred,t,tPred);
+%                 h = [h;hi];
+%                 
+%             end
             
         end
         
         function  defaultAfterStepPlotFunction(obj,varargin)
-            systemsList = obj.systemsList;
-            if nargin ==2
-                figO = varargin{1}-1;
-            else
-                figO = 0;
-            end
-            
-            for sysId = 1:length(systemsList)
-                
-                figure(figO+sysId)
-                xlabel = {};
-                ulabel = {};
-                nx = systemsList{sysId}.nx;
-                nu = systemsList{sysId}.nu;
-                
-                if iscell(systemsList{sysId}.stateName) && length(systemsList{sysId}.stateName)==nx
-                    xlabel = systemsList{sysId}.stateName;
-                else
-                    for ix = 1:nx
-                        xlabel{ix}=sprintf('x%i',ix);
-                    end
-                end
-                
-                if iscell(systemsList{sysId}.inputName) && length(systemsList{sysId}.inputName)==nu
-                    ulabel = systemsList{sysId}.stateName;
-                else
-                    for iu = 1:nu
-                        ulabel{iu}=sprintf('u%i',iu);
-                    end
-                end
-                labels = {xlabel{:},ulabel{:}};
-                
-                
-                maxColumn = obj.defaultPlotMaxColumn;
-                maxRows   = obj.defaultPlotMaxRows;
-                
-                nv = nx+nu;
-                
-                nColumns = ceil(nv/maxRows);
-                if nColumns> maxColumn
-                    return
-                end
-                nRows    = ceil(nv/nColumns);
-                
-                for i = 1:nv
-                    subplot(nRows,nColumns,i);
-                    ylabel(labels{i});
-                    grid on;
-                    setNicePlot
-                end
-                
-            end
+%             systemsList = obj.systemsList;
+%             if nargin ==2
+%                 figO = varargin{1}-1;
+%             else
+%                 figO = 0;
+%             end
+%             
+%             for sysId = 1:length(systemsList)
+%                 
+%                 figure(figO+sysId)
+%                 xlabel = {};
+%                 ulabel = {};
+%                 nx = systemsList{sysId}.nx;
+%                 nu = systemsList{sysId}.nu;
+%                 
+%                 if iscell(systemsList{sysId}.stateName) && length(systemsList{sysId}.stateName)==nx
+%                     xlabel = systemsList{sysId}.stateName;
+%                 else
+%                     for ix = 1:nx
+%                         xlabel{ix}=sprintf('x%i',ix);
+%                     end
+%                 end
+%                 
+%                 if iscell(systemsList{sysId}.inputName) && length(systemsList{sysId}.inputName)==nu
+%                     ulabel = systemsList{sysId}.stateName;
+%                 else
+%                     for iu = 1:nu
+%                         ulabel{iu}=sprintf('u%i',iu);
+%                     end
+%                 end
+%                 labels = {xlabel{:},ulabel{:}};
+%                 
+%                 
+%                 maxColumn = obj.defaultPlotMaxColumn;
+%                 maxRows   = obj.defaultPlotMaxRows;
+%                 
+%                 nv = nx+nu;
+%                 
+%                 nColumns = ceil(nv/maxRows);
+%                 if nColumns> maxColumn
+%                     return
+%                 end
+%                 nRows    = ceil(nv/nColumns);
+%                 
+%                 for i = 1:nv
+%                     subplot(nRows,nColumns,i);
+%                     ylabel(labels{i});
+%                     grid on;
+%                     setNicePlot
+%                 end
+%                 
+%             end
             
         end
         
         function h = oneDStepPlotFunction(obj,systemsList,log,oldHandles,k)
             
-            if iscell(oldHandles)
-                
-                delete(oldHandles{1})
-                delete(oldHandles{2})
-                
-            end
-            
-            nAgents = length(systemsList);
-            
-            hup   = zeros(1,nAgents);
-            hdown = zeros(1,nAgents);
-            
-            indexPlotsUp = 1;
-            indexPlotsDown = 1;
-            
-            for i= nAgents
-                
-                x = log{i}.stateTrajectory(:,1:k);
-                u = log{i}.inputTrajectory(:,1:k);
-                
-                t = log{i}.time(:,1:k);
-                
-                subplot(2,1,1);
-                
-                hup(indexPlotsUp) = plot(t,x); hold on
-                
-                indexPlotsUp = indexPlotsUp+1;
-                
-                
-                subplot(2,1,2);
-                
-                hdown(indexPlotsDown) = plot(t,u);  hold on
-                
-                indexPlotsDown = indexPlotsDown+1;
-                
-                if isa(systemsList{i}.controller,'MpcController')
-                    x_opt  = systemsList{i}.controller.lastSolution.x_opt;
-                    u_opt  = systemsList{i}.controller.lastSolution.u_opt;
-                    tu_opt = systemsList{i}.controller.lastSolution.tu_opt;
-                    tx_opt = systemsList{i}.controller.lastSolution.tx_opt;
-                    
-                    subplot(2,1,1);
-                    hup(indexPlotsUp) = plot(tx_opt,x_opt,'--');hold on;
-                    indexPlotsUp=indexPlotsUp+1;
-                    
-                    subplot(2,1,2);
-                    hdown(indexPlotsDown) = plot(tu_opt,u_opt,'--');hold on;
-                    indexPlotsDown=indexPlotsDown+1;
-                    
-                end
-            end
-            h={hup,hdown};
+%             if iscell(oldHandles)
+%                 
+%                 delete(oldHandles{1})
+%                 delete(oldHandles{2})
+%                 
+%             end
+%             
+%             nAgents = length(systemsList);
+%             
+%             hup   = zeros(1,nAgents);
+%             hdown = zeros(1,nAgents);
+%             
+%             indexPlotsUp = 1;
+%             indexPlotsDown = 1;
+%             
+%             for i= nAgents
+%                 
+%                 x = log{i}.stateTrajectory(:,1:k);
+%                 u = log{i}.inputTrajectory(:,1:k);
+%                 
+%                 t = log{i}.time(:,1:k);
+%                 
+%                 subplot(2,1,1);
+%                 
+%                 hup(indexPlotsUp) = plot(t,x); hold on
+%                 
+%                 indexPlotsUp = indexPlotsUp+1;
+%                 
+%                 
+%                 subplot(2,1,2);
+%                 
+%                 hdown(indexPlotsDown) = plot(t,u);  hold on
+%                 
+%                 indexPlotsDown = indexPlotsDown+1;
+%                 
+%                 if isa(systemsList{i}.controller,'MpcController')
+%                     x_opt  = systemsList{i}.controller.lastSolution.x_opt;
+%                     u_opt  = systemsList{i}.controller.lastSolution.u_opt;
+%                     tu_opt = systemsList{i}.controller.lastSolution.tu_opt;
+%                     tx_opt = systemsList{i}.controller.lastSolution.tx_opt;
+%                     
+%                     subplot(2,1,1);
+%                     hup(indexPlotsUp) = plot(tx_opt,x_opt,'--');hold on;
+%                     indexPlotsUp=indexPlotsUp+1;
+%                     
+%                     subplot(2,1,2);
+%                     hdown(indexPlotsDown) = plot(tu_opt,u_opt,'--');hold on;
+%                     indexPlotsDown=indexPlotsDown+1;
+%                     
+%                 end
+%             end
+%             h={hup,hdown};
+
+              h=[]; %Comment this if above is uncommented
             
             
         end
@@ -907,18 +909,18 @@ classdef VirtualArena < handle
         
         function oneDPostFirstPlot(obj)
             
-            subplot(2,1,1);
-            title('State')
-            xlabel('t [sec]')
-            ylabel('x(t)')
-            grid on
-            setNicePlot
-            
-            subplot(2,1,2);
-            title('Input')
-            xlabel('t [sec]')
-            ylabel('u(t)')
-            setNicePlot
+%             subplot(2,1,1);
+%             title('State')
+%             xlabel('t [sec]')
+%             ylabel('x(t)')
+%             grid on
+%             setNicePlot
+%             
+%             subplot(2,1,2);
+%             title('Input')
+%             xlabel('t [sec]')
+%             ylabel('u(t)')
+%             setNicePlot
             
         end
         

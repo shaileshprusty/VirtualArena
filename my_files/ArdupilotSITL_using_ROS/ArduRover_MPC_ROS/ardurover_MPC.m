@@ -1,6 +1,6 @@
 %PNPP
 %moving target
-%EKF
+
 clc; close all; clear all;
 
 attacker_LatLon_subscriber = rossubscriber('/attacker/mavros/global_position/global');
@@ -13,12 +13,12 @@ defender_LatLon_subscriber = rossubscriber('/defender/mavros/global_position/glo
 defender_angle_subscriber = rossubscriber('/defender/mavros/global_position/compass_hdg');
 defender_velocity_publisher = rospublisher('/defender/mavros/setpoint_velocity/cmd_vel_unstamped');
 
-dt = 1;
-vm = 0.4;
+dt = 0.95;
+vm = 0.9;
 vt = 0.3;
-vd = 0.5;
+vd = 0.6;
 K = 10;
-N = 40;
+N = 3;
 switchGuidanceLaw = 10;
 
 attacker_LatLon = receive(attacker_LatLon_subscriber,10);

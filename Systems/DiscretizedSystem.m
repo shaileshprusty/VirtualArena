@@ -76,7 +76,10 @@ classdef DiscretizedSystem < DtSystem
             end
             
         end
-        
-        
+
+	function pub(obj,varargin)
+	    obj.OriginalCtSystem.pub(varargin{:});
+	end
+                
     end
 end

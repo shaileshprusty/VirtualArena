@@ -219,7 +219,7 @@ classdef VirtualArena < handle
         
         defaultPlots         = 1;
         
-        profiler             = 0;
+%         profiler             = 0;
         
         % DisplaySelector object that chooses what to display
         display              = 0;
@@ -250,14 +250,14 @@ classdef VirtualArena < handle
             
             % Default Settings
             
-            obj.logObjs = {InputLog(),StateLog(),ControllerStateLog(),ObserverStateLog(),TimeLog()};
+     %       obj.logObjs = {InputLog(),StateLog(),ControllerStateLog(),ObserverStateLog(),TimeLog()};
             obj.display = DisplayNothing();
             obj.setOptions(varargin{:});
             
-            if isempty(obj.plottingStep)
-                obj.plottingStep = obj.discretizationStep;
-            end
-            
+             if isempty(obj.plottingStep)
+                 obj.plottingStep = obj.discretizationStep;
+             end
+             
             if isempty(obj.multiruns)
                 obj.multiruns = { IMultiRun(1,@(i,va)1==1) }; % Just do the classic simulation without modifications
             end
@@ -281,23 +281,23 @@ classdef VirtualArena < handle
         end
         
         
-        function logAll = run(obj)
-            
-            obj.callFunctionOnSystemsOnList('initSimulations','InitDeinitObject')
-            
-            if isa(obj.initPlotFunction,'function_handle')
-                obj.initPlotFunction();hold on
-            elseif obj.monodimentionalSystems()
-                obj.oneDinitPlotFunction();hold on
-            end
-            
-            logAll = obj.recursiveRun(obj.multiruns);
-            
-            obj.logAll = logAll;
-            
-            obj.callFunctionOnSystemsOnList('deinitSimulations','InitDeinitObject')
-            
-        end
+         function logAll = run(obj)
+             
+             obj.callFunctionOnSystemsOnList('initSimulations','InitDeinitObject')
+             
+%             if isa(obj.initPlotFunction,'function_handle')
+%                 obj.initPlotFunction();hold on
+%             elseif obj.monodimentionalSystems()
+%                 obj.oneDinitPlotFunction();hold on
+%             end
+             
+             logAll = obj.recursiveRun(obj.multiruns);
+%             
+%             %obj.logAll = logAll;
+%             
+             obj.callFunctionOnSystemsOnList('deinitSimulations','InitDeinitObject')
+%             
+         end
         
         
         function log = runOne(obj,varargin)
@@ -328,44 +328,43 @@ classdef VirtualArena < handle
             
             plot_handles = 0;
             
-            if ischar(obj.videoName)
-                %aviobj = avifile(strcat(obj.videoName,'.avi'),'compression','None');
-                aviobj = VideoWriter(strcat(obj.videoName,'.avi'));
-                open(aviobj);
-                
-            end
-            
+%             if ischar(obj.videoName)
+%                 %aviobj = avifile(strcat(obj.videoName,'.avi'),'compression','None');
+%                 aviobj = VideoWriter(strcat(obj.videoName,'.avi'));
+%                 open(aviobj);
+%                 
+%             end
+%             
             %% Compute time for obj.initLogs(timeInfo);
-            if not(obj.discretizationStep==1) %TODO: remove this madness
+            %if not(obj.discretizationStep==1) %TODO: remove this madness
                 timeInfo = obj.initialTime + (i-1)*obj.discretizationStep;
-            else
-                timeInfo = obj.initialTime + (i-1);
-            end
+            %else
+            %    timeInfo = obj.initialTime + (i-1);
+            %end
             
-            obj.initLogs(timeInfo);
+            %obj.initLogs(timeInfo);
             
             if not(obj.discretizationStep==1) && obj.realTime
                 simTimeTic =tic;
             end
             
-            if obj.profiler
-                profile on
-            end
+%             if obj.profiler
+%                 profile on
+%             end
             
             
             while not( obj.stoppingCriteria(timeInfo,obj.systemsList)  || obj.stoppingForced )
-                
-                
+                                
                 %% Compute time
-                if not(obj.discretizationStep==1) %TODO: remove this madness
+               % if not(obj.discretizationStep==1) %TODO: remove this madness
                     timeInfo = obj.initialTime + (i-1)*obj.discretizationStep;
-                else
-                    timeInfo = obj.initialTime + (i-1);
-                end
+               % else
+                %    timeInfo = obj.initialTime + (i-1);
+                %end
                 
                 for ia = 1:length(obj.systemsList) % Main loop for a single system
                     
-                    z = []; %measurament
+                   % z = []; %measurament
                     
                     %% Update current state of the systems
                     if not(isempty(obj.systemsList{ia}.stateObserver)) % Observer feedback
@@ -373,22 +372,21 @@ classdef VirtualArena < handle
                         xObs          = obj.systemsList{ia}.stateObserver.x;
                         xToController = obj.systemsList{ia}.stateObserver.h(timeInfo,xObs);
                         x             = obj.systemsList{ia}.x;
-                        z = obj.systemsList{ia}.h(timeInfo,x);
+                        z             = obj.systemsList{ia}.h(timeInfo,x);
                         
                     elseif not(isempty(obj.systemsList{ia}.h)) % Output feedback
-                        
-                        x             = obj.systemsList{ia}.x;
-                        xToController = obj.systemsList{ia}.h(timeInfo,x);
-                        z             = xToController;
-                        
+                            % disp('hola');
+                             x             = obj.systemsList{ia}.x;
+                             xToController = obj.systemsList{ia}.h(timeInfo,x);                             
+                             z             = xToController;
+                                
                     else % State feedback
                         
                         x             = obj.systemsList{ia}.x;
                         xToController = x;
-                        z = obj.systemsList{ia}.h(timeInfo,x);
-                        
+                        z             = obj.systemsList{ia}.h(timeInfo,x);
                     end
-                    
+                   
                     %% Classic vs Network control
                     if not(isempty(obj.sensorsNetwork))
                         
@@ -404,6 +402,7 @@ classdef VirtualArena < handle
                     
                     controllerFParams = {xToController,netReadings{:}};
                     %netReadings{1}{i_sensor}{j_measurament_of_sensor_i}
+                   % controllerFParams = {xToController};
                     
                     %% Compute input
                     uSysCon = [];
@@ -421,7 +420,7 @@ classdef VirtualArena < handle
                         %.systemsList{ia}.controller.x = nextXc; %DOTO: batch update like system for networksystems
                         
                         u = uSysCon(1:obj.systemsList{ia}.nu);
-                        
+                  
                     elseif isa(obj.systemsList{ia}.controller,'DtSystem') %DtController
                         
                         xc = obj.systemsList{ia}.controller.x;
@@ -437,7 +436,7 @@ classdef VirtualArena < handle
                         u = uSysCon(1:obj.systemsList{ia}.nu);
                         
                     elseif isa(obj.systemsList{ia}.controller,'Controller') %Memoryless Controller
-                            
+                                
                             nInputController = nargin(sprintf('%s>%s.%s',class(obj.systemsList{ia}.controller),class(obj.systemsList{ia}.controller),'computeInput'))-1;
                             
                             if nInputController==2 %does not consider network readings
@@ -445,8 +444,8 @@ classdef VirtualArena < handle
                             else
                                 u = obj.systemsList{ia}.controller.computeInput(timeInfo,controllerFParams{:});
                             end
-                     
-                        
+                   obj.systemsList{ia}.pub(timeInfo,xToController,u);
+                    % disp(obj.systemsList{1});       
                     elseif isempty(obj.systemsList{ia}.controller) && (isempty(obj.systemsList{ia}.nu) || obj.systemsList{ia}.nu == 0 ) %Automnomus System
                         
                         u=[];
@@ -456,127 +455,130 @@ classdef VirtualArena < handle
                         error(getMessage('VirtualArena:UnknownControllerType'));
                         
                     end
-                    
+                    disp(u);
                     %% Cv vs Dt System
                     parameterF = {u};
-                    
-                    if isa(obj.systemsList{ia},'CtSystem')
-                        
-                        if isempty(obj.discretizationStep)
-                            
-                            error(getMessage('VirtualArena:discretizationStepNotNefined'));
-                        end
-                        
-                        nextX = obj.integrator.integrate( @(x)obj.systemsList{ia}.f(timeInfo,x,parameterF{:}),x,obj.discretizationStep);
-                        
-                        nextX = obj.systemsList{ia}.updateState(timeInfo,nextX,parameterF{:});
-                        
-                    elseif isa(obj.systemsList{ia},'DtSystem')
-               
-                        nextX = obj.systemsList{ia}.f(timeInfo,x,parameterF{:});
-                        nextX = obj.systemsList{ia}.updateState(timeInfo,nextX,parameterF{:});
-                        
-                    else
-                        error(getMessage('VirtualArena:UnknownSystemType'));
-                    end
-                    
-                    if not(obj.discretizationStep==1) && obj.realTime
-                        while toc(simTimeTic)<timeInfo*obj.realTime
-                        end
-                    end
-                    
-                    if isa(obj.systemsList{ia}.stateObserver,'DynamicalSystem')
-                        
-                        [z,xObsNext] = obj.manageObserver(timeInfo,netReadings,ia,x,u,nextX);
-                        
-                    end
-                    
-                    obj.appendLogs(obj.systemsList{ia},u,ia,i,timeInfo,z,netReadings,uSysCon);
-                    
-                    nextXs{ia} = nextX;
-                    
-                    if isa(obj.systemsList{ia}.stateObserver,'DynamicalSystem')
-                        
-                        xObsNexts{ia} = xObsNext;
-                        
-                    end
-                    
-                end
-                
-                %% Update state objects
-                
-                for ia = 1:length(obj.systemsList) % Main loop for a single system
-                    obj.systemsList{ia}.x = nextXs{ia};
-                    
-                    if isa(obj.systemsList{ia}.stateObserver,'DynamicalSystem')
-                        
-                        obj.systemsList{ia}.stateObserver.x = xObsNexts{ia};
-                    end
-                    
-                    if not(isempty(obj.systemsList{ia}.controller)) && ( isa(obj.systemsList{ia}.controller,'DtSystem') || isa(obj.systemsList{ia}.controller,'CtSystem') )
-                        obj.systemsList{ia}.controller.x = nextXcs{ia};
-                    end
-                    
-                end
+%                     
+%                     if isa(obj.systemsList{ia},'CtSystem')
+%                         
+%                         if isempty(obj.discretizationStep)
+%                             
+%                             error(getMessage('VirtualArena:discretizationStepNotNefined'));
+%                         end
+%                         
+%                         nextX = obj.integrator.integrate( @(x)obj.systemsList{ia}.f(timeInfo,x,parameterF{:}),x,obj.discretizationStep);
+%                         
+%                         nextX = obj.systemsList{ia}.updateState(timeInfo,nextX,parameterF{:});
+%                         
+%                     elseif isa(obj.systemsList{ia},'DtSystem')
+%                
+%                         nextX = obj.systemsList{ia}.f(timeInfo,x,parameterF{:});
+%                         disp('--------------------x updated-----------------')
+%                         nextX = obj.systemsList{ia}.updateState(timeInfo,nextX,parameterF{:});
+%                         
+%                     else
+%                         error(getMessage('VirtualArena:UnknownSystemType'));
+%                     end
+%                     
+%                      if not(obj.discretizationStep==1) && obj.realTime
+%                          while toc(simTimeTic)<timeInfo*obj.realTime
+%                          end
+%                      end
+%                      
+%                     if isa(obj.systemsList{ia}.stateObserver,'DynamicalSystem')
+%                         
+%                         [z,xObsNext] = obj.manageObserver(timeInfo,netReadings,ia,x,u,nextX);
+%                         xObsNexts{ia} = xObsNext;
+%                         
+%                     end
+%                     
+%                     %obj.appendLogs(obj.systemsList{ia},u,ia,i,timeInfo,z,netReadings,uSysCon);
+%                     
+%                     nextXs{ia} = nextX;
+%                     
+%                     if isa(obj.systemsList{ia}.stateObserver,'DynamicalSystem')
+%                         
+%                         xObsNexts{ia} = xObsNext;
+%                         
+%                     end
+%                     
+%                 end
+%                 
+%                 % Update state objects
+%                 obj.systemsList{:}.x = nextXs{:};
+%                 
+%                % obj.systemsList(isa(obj.systemsList{:}.stateObserver,'DynamicalSystem')==1).stateObserver.x = xObsNexts{isa(obj.systemsList{:}.stateObserver,'DynamicalSystem')==1};
+%                 for ia = 1:length(obj.systemsList) % Main loop for a single system
+%                    % obj.systemsList{ia}.x = nextXs{ia};
+%                     
+%                      if isa(obj.systemsList{ia}.stateObserver,'DynamicalSystem')
+%                          obj.systemsList{ia}.stateObserver.x = xObsNexts{ia};
+%                      end
+%                      
+%                     if not(isempty(obj.systemsList{ia}.controller)) && ( isa(obj.systemsList{ia}.controller,'DtSystem') || isa(obj.systemsList{ia}.controller,'CtSystem') )
+%                         obj.systemsList{ia}.controller.x = nextXcs{ia};
+%                     end
+%                     
+                 end
                 %% Plots
-                if isa(obj.stepPlotFunction,'function_handle') && mod(timeInfo,obj.plottingStep)==0
-                    
-                    plot_handles  = obj.stepPlotFunction(obj.systemsList,obj.log,plot_handles,i);
-                    
-                    if isa(obj.handlePostFirstPlot,'function_handle') && i==1
-                        obj.handlePostFirstPlot();
-                    end
-                    
-                    drawnow
-                    if ischar(obj.videoName)
-                        F = getframe(gcf);
-                        %aviobj = addframe(aviobj,F);
-                        writeVideo(aviobj,F)
-                    end
-                    
-                elseif   mod(timeInfo,obj.plottingStep)==0 && obj.defaultPlots
-                    
-                    
-                    plot_handles  = obj.defaultStepPlotFunction(obj.systemsList,obj.log,plot_handles,i);
-                    
-                    if isa(obj.handlePostFirstPlot,'function_handle')&&i==1
-                        
-                        obj.handlePostFirstPlot();
-                        
-                    elseif i==1
-                        
-                        obj.defaultAfterStepPlotFunction();
-                    end
-                    
-                    
-                    drawnow
-                    if ischar(obj.videoName)
-                        F = getframe(gcf);
-                        %aviobj = addframe(aviobj,F);
-                        %aviobj = addframe(aviobj,F);
-                        writeVideo(aviobj,F)
-                    end
-                end
-                
+%                 if isa(obj.stepPlotFunction,'function_handle') && mod(timeInfo,obj.plottingStep)==0
+%                     
+%                     plot_handles  = obj.stepPlotFunction(obj.systemsList,obj.log,plot_handles,i);
+%                     
+%                     if isa(obj.handlePostFirstPlot,'function_handle') && i==1
+%                         obj.handlePostFirstPlot();
+%                     end
+%                     
+%                     drawnow
+%                     if ischar(obj.videoName)
+%                         F = getframe(gcf);
+%                         %aviobj = addframe(aviobj,F);
+%                         writeVideo(aviobj,F)
+%                     end
+%                     
+%                 elseif   mod(timeInfo,obj.plottingStep)==0 && obj.defaultPlots
+%                     
+%                     
+%                     plot_handles  = obj.defaultStepPlotFunction(obj.systemsList,obj.log,plot_handles,i);
+%                     
+%                     if isa(obj.handlePostFirstPlot,'function_handle')&&i==1
+%                         
+%                         obj.handlePostFirstPlot();
+%                         
+%                     elseif i==1
+%                         
+%                         obj.defaultAfterStepPlotFunction();
+%                     end
+%                     
+%                     
+%                     drawnow
+%                     if ischar(obj.videoName)
+%                         F = getframe(gcf);
+%                         %aviobj = addframe(aviobj,F);
+%                         %aviobj = addframe(aviobj,F);
+%                         writeVideo(aviobj,F)
+%                     end
+%                 end
+%                 
                 i = i+1;
                 
-                drawnow
+ %               drawnow
                 if strcmp(get(gcf,'CurrentCharacter'),'q')==1
                     obj.stoppingForced = 1;
                     disp('PRESSED KEY ''q'' >> simulation stopped')
                 end
                 
             end
-            if obj.profiler
-                profile viewer
-            end
+%             if obj.profiler
+%                 profile viewer
+%             end
             obj.callFunctionOnSystemsOnList('deinitSimulation','InitDeinitObject');
             
-            if ischar(obj.videoName)
-                
-                close(aviobj);
-                
-            end
+%             if ischar(obj.videoName)
+%                 
+%                 close(aviobj);
+%                 
+%             end
             
             obj.cutExtraLogVector(i-1,timeInfo);
             log = obj.log;
@@ -620,89 +622,89 @@ classdef VirtualArena < handle
             
         end
         
-        function appendVectorToLog(obj,v,iAgent,fildname,i)
-               try
-            if i>=size(obj.log{iAgent}.(fildname),2) % Allocate memory
-                
-                obj.log{iAgent}.(fildname) =  [obj.log{iAgent}.(fildname),zeros(size(v,1),obj.blockSizeAllocation)];
-                
-            end
-            
-            obj.log{iAgent}.(fildname)(:,i) = v;
-           
-               catch e
-                error('Error logging variable ''%s'':\n%s',fildname,e.message);
-            end
-            
-        end
+%         function appendVectorToLog(obj,v,iAgent,fildname,i)
+%                try
+%             if i>=size(obj.log{iAgent}.(fildname),2) % Allocate memory
+%                 
+%                 obj.log{iAgent}.(fildname) =  [obj.log{iAgent}.(fildname),zeros(size(v,1),obj.blockSizeAllocation)];
+%                 
+%             end
+%             
+%             obj.log{iAgent}.(fildname)(:,i) = v;
+%            
+%                catch e
+%                 error('Error logging variable ''%s'':\n%s',fildname,e.message);
+%             end
+%             
+%         end
+%         
+%    %     function appendLogs(obj,agent,u,iAgent,i,t,z,netReadings,uSysCon)
+%             
+%             logObjs = obj.logObjs;
+%             
+%             for j = 1:length(logObjs)
+%                 
+%                 logger = logObjs{j};
+%                 
+%                 iLog       = i;
+%                 logTheDate = 1;
+%                 
+%                 if ~isempty(logger.deltaStep)
+%                     logTheDate = mod(i,logger.deltaStep)==0;
+%                     iLog = i/logger.deltaStep +1; % plus one is because 0 is considered
+%                 end
+%                 
+%                 if ~isempty(logger.deltaTime)
+%                     logTheDate = mod(t,logger.deltaTime)==0;
+%                     iLog = t/logger.deltaTime +1; % plus one is because 0 is considered
+%                 end
+%                 
+%                 
+%                 if logTheDate && (isempty(logger.condition) || (not(isempty(logger.condition)) && logger.condition(t,agent,u,z)))
+%                     obj.appendVectorToLog(logger.getVectorToLog(t,agent,u,z,netReadings,uSysCon)    ,iAgent,logger.name,iLog + logger.shift );
+%                     %logger.i=logger.i+1;
+%                 end
+%                 
+%             end
+%             
+%         end
+%         
+%         function initLogs(obj,t0)
+%             
+%             
+%             nSystems = length(obj.systemsList);
+%             
+%             %% Initialize simulation
+%             for i = 1:nSystems
+%                 
+%                 logObjs = obj.logObjs;
+%                 if not(isempty(logObjs))
+%                     for j = 1:length(logObjs)
+%                         logObjs{j}.i=1;
+%                         if isempty(logObjs{j}.condition) || ( not(isempty(logObjs{j}.condition)) && logObjs{j}.condition(t0,obj.systemsList{i}))
+%                             if not(isempty(logObjs{j}.initialization))
+%                                 obj.log{i}.(logObjs{j}.name) = logObjs{j}.initialization;
+%                             else
+%                                 obj.log{i}.(logObjs{j}.name) = logObjs{j}.getVectorToLog(t0,obj.systemsList{i});
+%                             end
+%                         end
+%                         
+%                     end
+%                     
+%                 end
+%                 
+%                 
+%             end
+%         end
+%         
         
-        function appendLogs(obj,agent,u,iAgent,i,t,z,netReadings,uSysCon)
-            
-            logObjs = obj.logObjs;
-            
-            for j = 1:length(logObjs)
-                
-                logger = logObjs{j};
-                
-                iLog       = i;
-                logTheDate = 1;
-                
-                if ~isempty(logger.deltaStep)
-                    logTheDate = mod(i,logger.deltaStep)==0;
-                    iLog = i/logger.deltaStep +1; % plus one is because 0 is considered
-                end
-                
-                if ~isempty(logger.deltaTime)
-                    logTheDate = mod(t,logger.deltaTime)==0;
-                    iLog = t/logger.deltaTime +1; % plus one is because 0 is considered
-                end
-                
-                
-                if logTheDate && (isempty(logger.condition) || (not(isempty(logger.condition)) && logger.condition(t,agent,u,z)))
-                    obj.appendVectorToLog(logger.getVectorToLog(t,agent,u,z,netReadings,uSysCon)    ,iAgent,logger.name,iLog + logger.shift );
-                    %logger.i=logger.i+1;
-                end
-                
-            end
-            
-        end
-        
-        function initLogs(obj,t0)
-            
-            
-            nSystems = length(obj.systemsList);
-            
-            %% Initialize simulation
-            for i = 1:nSystems
-                
-                logObjs = obj.logObjs;
-                if not(isempty(logObjs))
-                    for j = 1:length(logObjs)
-                        logObjs{j}.i=1;
-                        if isempty(logObjs{j}.condition) || ( not(isempty(logObjs{j}.condition)) && logObjs{j}.condition(t0,obj.systemsList{i}))
-                            if not(isempty(logObjs{j}.initialization))
-                                obj.log{i}.(logObjs{j}.name) = logObjs{j}.initialization;
-                            else
-                                obj.log{i}.(logObjs{j}.name) = logObjs{j}.getVectorToLog(t0,obj.systemsList{i});
-                            end
-                        end
-                        
-                    end
-                    
-                end
-                
-                
-            end
-        end
-        
-        
-        function oneDinitPlotFunction(obj)
-        end
-        
-        function h = plotSignalPredictionAndEstimate(obj,signal,estimate,prediction,timeSignal,timePrediction)
-            
-            h = [];
-            
+%         function oneDinitPlotFunction(obj)
+%         end
+%         
+%         function h = plotSignalPredictionAndEstimate(obj,signal,estimate,prediction,timeSignal,timePrediction)
+%             
+%             h = [];
+%             
 %             maxColumn = obj.defaultPlotMaxColumn;
 %             maxRows   = obj.defaultPlotMaxRows;
 %             
@@ -741,10 +743,10 @@ classdef VirtualArena < handle
 %                     iPlot = iPlot+1;
 %                 end
 %             end
-            
-        end
-        
-        function h = defaultStepPlotFunction(obj,systemsList,log,oldHandles,k,varargin)
+%             
+%         end
+%         
+%         function h = defaultStepPlotFunction(obj,systemsList,log,oldHandles,k,varargin)
 %             if oldHandles~=0
 %                 delete(oldHandles);
 %             end
@@ -754,9 +756,9 @@ classdef VirtualArena < handle
 %             else
 %                 figO = 0;
 %             end
-            
-            h = [];
-            
+%             
+%             h = [];
+%             
 %             for sysId = 1:length(systemsList)
 %                 figure(figO+sysId);
 %                 est   = [];
@@ -775,10 +777,10 @@ classdef VirtualArena < handle
 %                 h = [h;hi];
 %                 
 %             end
-            
-        end
-        
-        function  defaultAfterStepPlotFunction(obj,varargin)
+%             
+%         end
+%         
+%         function  defaultAfterStepPlotFunction(obj,varargin)
 %             systemsList = obj.systemsList;
 %             if nargin ==2
 %                 figO = varargin{1}-1;
@@ -831,11 +833,11 @@ classdef VirtualArena < handle
 %                 end
 %                 
 %             end
-            
-        end
-        
-        function h = oneDStepPlotFunction(obj,systemsList,log,oldHandles,k)
-            
+%             
+%         end
+%         
+%         function h = oneDStepPlotFunction(obj,systemsList,log,oldHandles,k)
+%             
 %             if iscell(oldHandles)
 %                 
 %                 delete(oldHandles{1})
@@ -888,12 +890,10 @@ classdef VirtualArena < handle
 %                 end
 %             end
 %             h={hup,hdown};
-
-              h=[]; %Comment this if above is uncommented
-            
-            
-        end
-        
+%             
+%             
+%         end
+%         
         %%monodimentionalSystems returns one if the size of all the
         %% systems is one, zero otherwise
         function ret =  monodimentionalSystems(obj)
@@ -907,8 +907,8 @@ classdef VirtualArena < handle
             
         end
         
-        function oneDPostFirstPlot(obj)
-            
+%         function oneDPostFirstPlot(obj)
+%             
 %             subplot(2,1,1);
 %             title('State')
 %             xlabel('t [sec]')
@@ -921,8 +921,8 @@ classdef VirtualArena < handle
 %             xlabel('t [sec]')
 %             ylabel('u(t)')
 %             setNicePlot
-            
-        end
+%             
+%         end
         
         
         

@@ -7,14 +7,14 @@
                 
                 for j = 1:multirunToDo.n
                     multirunToDo.initFun(obj,j);
-                    
+                    %disp('hola');
                     if isa(obj.systemsList{1}.initialCondition,'cell')
                         
                         nInitialConditoins = length(obj.systemsList{1}.initialCondition);
                         logAll = cell(1,nInitialConditoins);
                         
                         for i = 1:nInitialConditoins
-                            
+                            %disp('hola');
                             if obj.display.recursiveRun
                                 
                                 fprintf('Multirun %i, Initial Condition %i\n',j,i);
@@ -32,11 +32,11 @@
                         
                         logAll = obj.runOne();
                         
-                        if isa(obj.stopPlotFunction,'function_handle')
-                            
-                            obj.stopPlotFunction(logAll,obj); hold on
-                        end
-                        
+%                         if isa(obj.stopPlotFunction,'function_handle')
+%                             
+%                             obj.stopPlotFunction(logAll,obj); hold on
+%                         end
+%                         
                     end
                     
                     logAllAll{j} = logAll;
@@ -60,6 +60,7 @@
                     multirunNow{i}.initFun(obj,i);
                     
                     logAllAll{i}= obj.recursiveRun(multirunToRecursion);
+                    %disp('hola');    // no display
                 end
             end
             
